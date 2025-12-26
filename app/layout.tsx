@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
+import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 import { ConvexClientProvider } from "./ConvexClientProvider";
 import { SiteHeader } from "@/components/header";
-import { SiteFooter } from "@/components/footer";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -32,27 +32,28 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}
-      >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
+    <ClerkProvider>
+      <html lang="en" suppressHydrationWarning>
+        <body
+          className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}
         >
-          <ConvexClientProvider>
-            <div className="min-h-dvh flex flex-col">
-              <SiteHeader />
-              <main className="flex-1 mx-auto w-full max-w-6xl px-4 py-8">
-                {children}
-              </main>
-              <SiteFooter />
-            </div>
-          </ConvexClientProvider>
-        </ThemeProvider>
-      </body>
-    </html>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <ConvexClientProvider>
+              <div className="min-h-dvh flex flex-col">
+                <SiteHeader />
+                <main className="flex-1 mx-auto w-full max-w-5xl px-6 py-12">
+                  {children}
+                </main>
+              </div>
+            </ConvexClientProvider>
+          </ThemeProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

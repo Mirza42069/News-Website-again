@@ -27,30 +27,34 @@ export function MobileNav({ categories }: MobileNavProps) {
     return (
         <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden h-9 w-9">
+                <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    className="md:hidden text-muted-foreground hover:text-violet-500"
+                >
                     <MenuIcon className="h-5 w-5" />
                     <span className="sr-only">Toggle menu</span>
                 </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-[280px]">
+            <SheetContent side="left" className="w-[280px] bg-background/95 backdrop-blur-md">
                 <SheetHeader>
                     <SheetTitle>
                         <Link
                             href="/"
                             onClick={() => setOpen(false)}
-                            className="font-semibold tracking-tight"
+                            className="font-semibold text-lg tracking-tight"
                         >
-                            Newsroom
+                            newsroom<span className="text-violet-500">.</span>
                         </Link>
                     </SheetTitle>
                 </SheetHeader>
-                <nav className="mt-6 flex flex-col gap-1">
+                <nav className="mt-8 flex flex-col gap-1">
                     {categories.map((category) => (
                         <Link
                             key={category.href}
                             href={category.href}
                             onClick={() => setOpen(false)}
-                            className="block px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
+                            className="block px-4 py-3 text-sm font-medium text-muted-foreground hover:text-violet-500 hover:bg-violet-500/5 rounded-lg transition-colors"
                         >
                             {category.label}
                         </Link>

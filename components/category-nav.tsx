@@ -38,7 +38,7 @@ export function CategoryNav({ activeCategory }: CategoryNavProps) {
                             <Button
                                 variant={isActive ? "default" : "ghost"}
                                 size="sm"
-                                className="h-8"
+                                className={`h-8 ${isActive ? "bg-accent text-accent-foreground" : "hover:text-accent"}`}
                             >
                                 {category.name}
                             </Button>

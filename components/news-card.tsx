@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { CalendarIcon, ClockIcon, ArrowUpRightIcon } from "lucide-react";
+import { VoteButtons } from "@/components/vote-buttons";
+import { ArrowRightIcon } from "lucide-react";
 import { Doc } from "@/convex/_generated/dataModel";
 
 interface NewsCardProps {
@@ -19,117 +20,127 @@ function formatDate(timestamp: number): string {
     });
 }
 
-export function NewsCard({ article, variant = "default", index }: NewsCardProps) {
-    // Minimal variant - just title and meta
-    if (variant === "minimal") {
-        return (
-            <Link href={`/article/${article.slug}`} className="group block">
-                <div className="flex items-start gap-4 p-4 rounded-xl hover:bg-white/5 transition-all duration-300">
-                    <div className="space-y-1.5 flex-1">
-                        <p className="font-medium leading-snug group-hover:text-primary transition-colors line-clamp-2">
-                            {article.title}
-                        </p>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <span>{article.category}</span>
-                            <span className="w-1 h-1 rounded-full bg-muted-foreground/50" />
-                            <span>{formatDate(article.publishedAt)}</span>
-                        </div>
-                    </div>
-                </div>
-            </Link>
-        );
+// Generate vote count - some articles get negative votes
+function getVoteCount(articleId: string, index?: number): { votes: number; preVoted?: "down" } {
+    const charCode = articleId.charCodeAt(0);
+
+    // Make some articles have negative votes (every 3rd or 4th article)
+    if (charCode % 4 === 0 || (index !== undefined && index % 3 === 2)) {
+        return { votes: -12, preVoted: "down" };
+    }
+    if (charCode % 5 === 0) {
+        return { votes: -5, preVoted: "down" };
     }
 
-    // Horizontal variant
-    if (variant === "horizontal") {
+    return { votes: charCode % 50 + 10 };
+}
+
+export function NewsCard({ article, variant = "default", index }: NewsCardProps) {
+    const { votes, preVoted } = getVoteCount(article._id, index);
+
+    // Minimal variant - clean text-only design with votes
+    if (variant === "minimal") {
         return (
-            <Link href={`/article/${article.slug}`} className="group block">
-                <article className="flex flex-col sm:flex-row gap-4 p-4 rounded-2xl glass-card gradient-border hover-lift">
-                    <div className="relative sm:w-48 h-32 sm:h-auto rounded-xl overflow-hidden flex-shrink-0">
-                        <img
-                            src={article.imageUrl}
-                            alt={article.title}
-                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                        <Badge className="absolute top-2 left-2 gradient-glow border-0 text-white text-xs">
-                            {article.category}
-                        </Badge>
-                    </div>
-                    <div className="flex-1 flex flex-col justify-center space-y-2">
-                        <h3 className="font-bold leading-snug group-hover:text-primary transition-colors line-clamp-2">
+            <div className="flex gap-3 py-4">
+                <VoteButtons initialVotes={votes} size="sm" preVoted={preVoted} />
+                <Link href={`/article/${article.slug}`} className="group block flex-1">
+                    <article className="space-y-2">
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <span className="text-violet-500">{article.category}</span>
+                            <span className="w-1 h-1 rounded-full bg-violet-500/30" />
+                            <span>{formatDate(article.publishedAt)}</span>
+                        </div>
+                        <h3 className="font-semibold leading-snug group-hover:text-violet-500 transition-colors line-clamp-2">
                             {article.title}
                         </h3>
                         <p className="text-sm text-muted-foreground line-clamp-2">
                             {article.excerpt}
                         </p>
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                            <div className="flex items-center gap-1">
-                                <CalendarIcon className="h-3 w-3" />
+                    </article>
+                </Link>
+            </div>
+        );
+    }
+
+    // Horizontal variant - for featured sections
+    if (variant === "horizontal") {
+        return (
+            <div className="flex gap-4 py-4 border-b border-violet-500/10 last:border-0">
+                <VoteButtons initialVotes={votes} preVoted={preVoted} />
+                <Link href={`/article/${article.slug}`} className="group block flex-1">
+                    <article className="flex flex-col sm:flex-row gap-4">
+                        {article.imageUrl && (
+                            <div className="relative sm:w-48 aspect-[16/10] overflow-hidden rounded-lg flex-shrink-0">
+                                <img
+                                    src={article.imageUrl}
+                                    alt={article.title}
+                                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                />
+                            </div>
+                        )}
+                        <div className="flex-1 space-y-2">
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <Badge variant="outline" className="font-normal text-xs border-violet-500/30">
+                                    {article.category}
+                                </Badge>
                                 <span>{formatDate(article.publishedAt)}</span>
                             </div>
-                            {article.readTime && (
-                                <>
-                                    <span className="w-1 h-1 rounded-full bg-muted-foreground/50" />
-                                    <div className="flex items-center gap-1">
-                                        <ClockIcon className="h-3 w-3" />
-                                        <span>{article.readTime} min</span>
-                                    </div>
-                                </>
-                            )}
+                            <h3 className="font-semibold text-lg leading-snug group-hover:text-violet-500 transition-colors line-clamp-2">
+                                {article.title}
+                            </h3>
+                            <p className="text-sm text-muted-foreground line-clamp-2">
+                                {article.excerpt}
+                            </p>
+                        </div>
+                    </article>
+                </Link>
+            </div>
+        );
+    }
+
+    // Default card variant - clean minimal card with votes
+    return (
+        <div className="h-full flex gap-3">
+            <VoteButtons initialVotes={votes} size="sm" preVoted={preVoted} />
+            <Link href={`/article/${article.slug}`} className="group block flex-1">
+                <article className="h-full space-y-4 hover-lift">
+                    {/* Image */}
+                    {article.imageUrl && (
+                        <div className="relative aspect-[16/10] overflow-hidden rounded-lg">
+                            <img
+                                src={article.imageUrl}
+                                alt={article.title}
+                                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            />
+                        </div>
+                    )}
+
+                    {/* Content */}
+                    <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <Badge variant="outline" className="font-normal text-xs border-violet-500/30 text-violet-500">
+                                {article.category}
+                            </Badge>
+                            <span>{formatDate(article.publishedAt)}</span>
+                        </div>
+
+                        <h3 className="font-semibold text-lg leading-snug group-hover:text-violet-500 transition-colors line-clamp-2">
+                            {article.title}
+                        </h3>
+
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                            {article.excerpt}
+                        </p>
+
+                        <div className="flex items-center justify-between pt-2 text-xs text-muted-foreground">
+                            <span>{article.author}</span>
+                            <span className="text-violet-500 opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center gap-1">
+                                Read <ArrowRightIcon className="h-3 w-3" />
+                            </span>
                         </div>
                     </div>
                 </article>
             </Link>
-        );
-    }
-
-    // Default card variant
-    return (
-        <Link href={`/article/${article.slug}`} className="group block h-full">
-            <article className="relative h-full rounded-2xl overflow-hidden glass-card gradient-border hover-lift card-shine">
-                {/* Image */}
-                <div className="relative aspect-[16/10] overflow-hidden">
-                    <img
-                        src={article.imageUrl}
-                        alt={article.title}
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-                    {/* Category badge */}
-                    <Badge className="absolute top-4 left-4 gradient-glow border-0 text-white font-medium shadow-lg">
-                        {article.category}
-                    </Badge>
-
-                    {/* Hover arrow */}
-                    <div className="absolute bottom-4 right-4 w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">
-                        <ArrowUpRightIcon className="h-5 w-5 text-white" />
-                    </div>
-                </div>
-
-                {/* Content */}
-                <div className="p-5 space-y-3">
-                    <h3 className="font-bold text-lg leading-snug group-hover:text-primary transition-colors duration-300 line-clamp-2">
-                        {article.title}
-                    </h3>
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                        {article.excerpt}
-                    </p>
-
-                    {/* Meta */}
-                    <div className="flex items-center justify-between pt-3 border-t border-white/10">
-                        <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/50 to-accent/50 flex items-center justify-center text-xs font-bold">
-                                {article.author?.charAt(0) || "A"}
-                            </div>
-                            <span className="text-sm text-muted-foreground">{article.author}</span>
-                        </div>
-                        <span className="text-xs text-muted-foreground">
-                            {formatDate(article.publishedAt)}
-                        </span>
-                    </div>
-                </div>
-            </article>
-        </Link>
+        </div>
     );
 }

@@ -4,9 +4,26 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { NewspaperIcon } from "lucide-react";
+import { VoteButtons } from "@/components/vote-buttons";
+import { ArrowRightIcon, SparklesIcon } from "lucide-react";
 import Link from "next/link";
+
+// Generate vote count - some articles get negative votes
+function getVoteCount(articleId: string, index?: number): { votes: number; preVoted?: "down" } {
+    const charCode = articleId.charCodeAt(0);
+
+    // Make some articles have negative votes
+    if (charCode % 4 === 0 || (index !== undefined && index % 3 === 2)) {
+        return { votes: -12, preVoted: "down" };
+    }
+    if (charCode % 5 === 0) {
+        return { votes: -5, preVoted: "down" };
+    }
+
+    return { votes: charCode % 50 + 10 };
+}
 
 export default function HomePage() {
     const allArticles = useQuery(api.news.list);
@@ -15,11 +32,16 @@ export default function HomePage() {
     // Loading
     if (allArticles === undefined) {
         return (
-            <div className="space-y-8">
-                <Skeleton className="h-32 w-full" />
-                <div className="grid gap-6 sm:grid-cols-2">
-                    <Skeleton className="h-24" />
-                    <Skeleton className="h-24" />
+            <div className="space-y-12 animate-fade-in">
+                <div className="space-y-4">
+                    <Skeleton className="h-6 w-24" />
+                    <Skeleton className="h-10 w-3/4" />
+                    <Skeleton className="h-5 w-1/2" />
+                </div>
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {[...Array(6)].map((_, i) => (
+                        <Skeleton key={i} className="h-64 rounded-lg" />
+                    ))}
                 </div>
             </div>
         );
@@ -28,111 +50,173 @@ export default function HomePage() {
     // Empty
     if (allArticles.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-20 text-center">
-                <NewspaperIcon className="h-10 w-10 text-muted-foreground mb-4" />
-                <h1 className="text-xl font-semibold mb-2">Welcome to Newsroom</h1>
-                <p className="text-muted-foreground mb-6 max-w-sm">
-                    Add sample articles to get started.
-                </p>
-                <Button onClick={() => seed().then(() => window.location.reload())}>
-                    Seed Articles
-                </Button>
+            <div className="flex items-center justify-center min-h-[60vh] animate-fade-in">
+                <div className="text-center space-y-6 max-w-md">
+                    <div className="mx-auto w-16 h-16 rounded-full bg-violet-500/10 flex items-center justify-center">
+                        <SparklesIcon className="h-8 w-8 text-violet-500" />
+                    </div>
+                    <div className="space-y-2">
+                        <h1 className="text-2xl font-semibold">Welcome to newsroom</h1>
+                        <p className="text-muted-foreground">
+                            Get started by adding some sample articles to explore the platform.
+                        </p>
+                    </div>
+                    <Button
+                        className="bg-violet-500 hover:bg-violet-600 text-white"
+                        onClick={() => seed().then(() => window.location.reload())}
+                    >
+                        Add Sample Articles
+                    </Button>
+                </div>
             </div>
         );
     }
 
     const featured = allArticles.find((a) => a.featured) || allArticles[0];
     const articles = allArticles.filter((a) => a._id !== featured._id).slice(0, 6);
-    const trending = allArticles.slice(0, 4);
+    const latestArticles = allArticles.slice(0, 5);
+
+    // Featured article votes
+    const featuredVoteData = getVoteCount(featured._id);
 
     return (
-        <div className="grid gap-10 lg:grid-cols-[1fr_280px]">
-            {/* Main */}
-            <div className="space-y-10">
-                {/* Featured */}
-                <article>
-                    <Badge variant="secondary" className="mb-3">Featured</Badge>
-                    <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight mb-2">
-                        <Link href={`/article/${featured.slug}`} className="hover:underline">
-                            {featured.title}
-                        </Link>
-                    </h1>
-                    <p className="text-muted-foreground mb-3 line-clamp-2">
-                        {featured.excerpt}
-                    </p>
-                    <Link
-                        href={`/article/${featured.slug}`}
-                        className="text-sm font-medium hover:underline"
-                    >
-                        Read more →
-                    </Link>
-                </article>
+        <div className="space-y-12 animate-fade-in">
+            {/* Hero / Featured Article */}
+            <section className="space-y-6">
+                <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-violet-500" />
+                    <span className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                        Featured Story
+                    </span>
+                </div>
 
-                <hr />
+                <div className="flex gap-6">
+                    {/* Votes */}
+                    <div className="hidden sm:block">
+                        <VoteButtons
+                            initialVotes={featuredVoteData.votes}
+                            preVoted={featuredVoteData.preVoted}
+                        />
+                    </div>
 
-                {/* Articles */}
-                <div className="grid gap-8 sm:grid-cols-2">
-                    {articles.map((article) => (
-                        <article key={article._id}>
-                            <div className="flex items-center gap-2 mb-2">
-                                <Badge variant="outline" className="text-xs">
-                                    {article.category}
+                    <article className="group flex-1">
+                        <Link href={`/article/${featured.slug}`} className="block space-y-4">
+                            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight group-hover:text-violet-500 transition-colors text-balance">
+                                {featured.title}
+                            </h1>
+                            <p className="text-lg text-muted-foreground max-w-3xl leading-relaxed">
+                                {featured.excerpt}
+                            </p>
+                            <div className="flex items-center gap-4 pt-2">
+                                {/* Mobile votes */}
+                                <div className="sm:hidden">
+                                    <VoteButtons
+                                        initialVotes={featuredVoteData.votes}
+                                        orientation="horizontal"
+                                        size="sm"
+                                        preVoted={featuredVoteData.preVoted}
+                                    />
+                                </div>
+                                <Badge variant="secondary" className="font-normal">
+                                    {featured.category}
                                 </Badge>
-                                <span className="text-xs text-muted-foreground">
-                                    {new Date(article.publishedAt).toLocaleDateString("en-US", {
-                                        month: "short",
+                                <span className="text-sm text-muted-foreground">
+                                    {new Date(featured.publishedAt).toLocaleDateString("en-US", {
+                                        month: "long",
                                         day: "numeric",
+                                        year: "numeric",
                                     })}
                                 </span>
+                                <span className="text-sm text-violet-500 font-medium inline-flex items-center gap-1 group-hover:gap-2 transition-all">
+                                    Read article <ArrowRightIcon className="h-3 w-3" />
+                                </span>
                             </div>
-                            <h2 className="font-medium mb-1">
-                                <Link
-                                    href={`/article/${article.slug}`}
-                                    className="hover:underline line-clamp-2"
-                                >
-                                    {article.title}
-                                </Link>
-                            </h2>
-                            <p className="text-sm text-muted-foreground line-clamp-2">
-                                {article.excerpt}
-                            </p>
-                        </article>
-                    ))}
+                        </Link>
+                    </article>
                 </div>
-            </div>
+            </section>
 
-            {/* Sidebar */}
-            <aside className="space-y-8">
-                <div>
-                    <h3 className="text-sm font-semibold mb-4">Trending</h3>
-                    <div className="space-y-3">
-                        {trending.map((article, i) => (
-                            <Link
-                                key={article._id}
-                                href={`/article/${article.slug}`}
-                                className="flex gap-3 group"
-                            >
-                                <span className="text-muted-foreground text-sm font-medium w-4">
-                                    {i + 1}
-                                </span>
-                                <span className="text-sm group-hover:underline line-clamp-2">
-                                    {article.title}
-                                </span>
-                            </Link>
-                        ))}
+            {/* Thin divider */}
+            <div className="h-px bg-violet-500/20" />
+
+            {/* Main Content Grid */}
+            <div className="grid gap-10 lg:grid-cols-[1fr_260px]">
+                {/* Articles */}
+                <section className="space-y-6">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-xl font-semibold">Latest Stories</h2>
+                        <Link
+                            href="/category/world"
+                            className="text-sm text-muted-foreground hover:text-violet-500 transition-colors inline-flex items-center gap-1"
+                        >
+                            View all <ArrowRightIcon className="h-3 w-3" />
+                        </Link>
                     </div>
-                </div>
 
-                <hr />
+                    <div className="grid gap-8 sm:grid-cols-2">
+                        {articles.map((article, index) => {
+                            const voteData = getVoteCount(article._id, index);
+                            return (
+                                <div key={article._id} className="flex gap-3">
+                                    <VoteButtons
+                                        initialVotes={voteData.votes}
+                                        size="sm"
+                                        preVoted={voteData.preVoted}
+                                    />
+                                    <article className="group flex-1 space-y-3">
+                                        <Link href={`/article/${article.slug}`} className="block">
+                                            <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2">
+                                                <Badge variant="outline" className="font-normal text-xs border-violet-500/30">
+                                                    {article.category}
+                                                </Badge>
+                                                <span>
+                                                    {new Date(article.publishedAt).toLocaleDateString("en-US", {
+                                                        month: "short",
+                                                        day: "numeric",
+                                                    })}
+                                                </span>
+                                            </div>
+                                            <h3 className="font-semibold text-lg leading-snug group-hover:text-violet-500 transition-colors line-clamp-2">
+                                                {article.title}
+                                            </h3>
+                                            <p className="text-sm text-muted-foreground line-clamp-2 mt-2">
+                                                {article.excerpt}
+                                            </p>
+                                        </Link>
+                                    </article>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </section>
 
-                <div>
-                    <h3 className="text-sm font-semibold mb-2">Newsletter</h3>
-                    <p className="text-sm text-muted-foreground mb-3">
-                        Weekly digest, no spam.
-                    </p>
-                    <Button size="sm" className="w-full">Subscribe</Button>
-                </div>
-            </aside>
+                {/* Sidebar - Trending Only */}
+                <aside>
+                    <Card className="border-0 bg-violet-500/5">
+                        <CardHeader className="pb-3">
+                            <CardTitle className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
+                                Trending Now
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            {latestArticles.map((article, i) => (
+                                <Link
+                                    key={article._id}
+                                    href={`/article/${article.slug}`}
+                                    className="flex gap-3 group"
+                                >
+                                    <span className="text-2xl font-bold text-violet-500/40 w-6 shrink-0">
+                                        {i + 1}
+                                    </span>
+                                    <span className="text-sm leading-snug group-hover:text-violet-500 transition-colors line-clamp-2">
+                                        {article.title}
+                                    </span>
+                                </Link>
+                            ))}
+                        </CardContent>
+                    </Card>
+                </aside>
+            </div>
         </div>
     );
 }
