@@ -2,97 +2,134 @@
 
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ClockIcon, UserIcon } from "lucide-react";
+import { CalendarIcon, ClockIcon, ArrowUpRightIcon } from "lucide-react";
 import { Doc } from "@/convex/_generated/dataModel";
 
 interface NewsCardProps {
     article: Doc<"articles">;
-    variant?: "default" | "compact";
+    variant?: "default" | "horizontal" | "minimal";
+    index?: number;
 }
 
-function formatTimeAgo(timestamp: number): string {
-    const now = Date.now();
-    const diff = now - timestamp;
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    if (hours < 24) return `${hours}h ago`;
-    if (days < 7) return `${days}d ago`;
-    return new Date(timestamp).toLocaleDateString();
+function formatDate(timestamp: number): string {
+    return new Date(timestamp).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+    });
 }
 
-export function NewsCard({ article, variant = "default" }: NewsCardProps) {
-    if (variant === "compact") {
+export function NewsCard({ article, variant = "default", index }: NewsCardProps) {
+    // Minimal variant - just title and meta
+    if (variant === "minimal") {
         return (
-            <Link href={`/article/${article.slug}`} className="block group">
-                <div className="flex items-start gap-4 py-4 border-b last:border-0 group-hover:bg-muted/50 transition-colors rounded-lg px-2 -mx-2">
-                    {article.imageUrl && (
-                        <div className="w-24 h-24 shrink-0 rounded-md overflow-hidden bg-muted">
-                            <img
-                                src={article.imageUrl}
-                                alt={article.title}
-                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                            />
-                        </div>
-                    )}
-                    <div className="flex-1 space-y-1">
-                        <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="text-[10px] px-1 py-0 h-5">
-                                {article.category}
-                            </Badge>
-                            <span className="text-xs text-muted-foreground">
-                                {formatTimeAgo(article.publishedAt)}
-                            </span>
-                        </div>
-                        <h4 className="font-medium leading-tight group-hover:underline decoration-primary decoration-1 underline-offset-4 line-clamp-2">
+            <Link href={`/article/${article.slug}`} className="group block">
+                <div className="flex items-start gap-4 p-4 rounded-xl hover:bg-white/5 transition-all duration-300">
+                    <div className="space-y-1.5 flex-1">
+                        <p className="font-medium leading-snug group-hover:text-primary transition-colors line-clamp-2">
                             {article.title}
-                        </h4>
+                        </p>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <span>{article.category}</span>
+                            <span className="w-1 h-1 rounded-full bg-muted-foreground/50" />
+                            <span>{formatDate(article.publishedAt)}</span>
+                        </div>
                     </div>
                 </div>
             </Link>
         );
     }
 
+    // Horizontal variant
+    if (variant === "horizontal") {
+        return (
+            <Link href={`/article/${article.slug}`} className="group block">
+                <article className="flex flex-col sm:flex-row gap-4 p-4 rounded-2xl glass-card gradient-border hover-lift">
+                    <div className="relative sm:w-48 h-32 sm:h-auto rounded-xl overflow-hidden flex-shrink-0">
+                        <img
+                            src={article.imageUrl}
+                            alt={article.title}
+                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                        <Badge className="absolute top-2 left-2 gradient-glow border-0 text-white text-xs">
+                            {article.category}
+                        </Badge>
+                    </div>
+                    <div className="flex-1 flex flex-col justify-center space-y-2">
+                        <h3 className="font-bold leading-snug group-hover:text-primary transition-colors line-clamp-2">
+                            {article.title}
+                        </h3>
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                            {article.excerpt}
+                        </p>
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-1">
+                                <CalendarIcon className="h-3 w-3" />
+                                <span>{formatDate(article.publishedAt)}</span>
+                            </div>
+                            {article.readTime && (
+                                <>
+                                    <span className="w-1 h-1 rounded-full bg-muted-foreground/50" />
+                                    <div className="flex items-center gap-1">
+                                        <ClockIcon className="h-3 w-3" />
+                                        <span>{article.readTime} min</span>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                </article>
+            </Link>
+        );
+    }
+
+    // Default card variant
     return (
-        <Link href={`/article/${article.slug}`} className="block h-full">
-            <Card className="h-full flex flex-col overflow-hidden hover:shadow-lg transition-shadow duration-300 border-border/60">
-                <div className="relative aspect-[16/9] overflow-hidden bg-muted">
+        <Link href={`/article/${article.slug}`} className="group block h-full">
+            <article className="relative h-full rounded-2xl overflow-hidden glass-card gradient-border hover-lift card-shine">
+                {/* Image */}
+                <div className="relative aspect-[16/10] overflow-hidden">
                     <img
                         src={article.imageUrl}
                         alt={article.title}
-                        className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
-                    <Badge className="absolute top-2 left-2 shadow-sm" variant="secondary">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                    {/* Category badge */}
+                    <Badge className="absolute top-4 left-4 gradient-glow border-0 text-white font-medium shadow-lg">
                         {article.category}
                     </Badge>
-                </div>
-                <CardHeader className="p-4 space-y-2">
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                            <ClockIcon className="w-3 h-3" />
-                            {formatTimeAgo(article.publishedAt)}
-                        </div>
-                        {article.readTime && <span>{article.readTime} min read</span>}
+
+                    {/* Hover arrow */}
+                    <div className="absolute bottom-4 right-4 w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300">
+                        <ArrowUpRightIcon className="h-5 w-5 text-white" />
                     </div>
-                    <CardTitle className="text-lg font-bold leading-tight line-clamp-2 group-hover:text-primary transition-colors">
+                </div>
+
+                {/* Content */}
+                <div className="p-5 space-y-3">
+                    <h3 className="font-bold text-lg leading-snug group-hover:text-primary transition-colors duration-300 line-clamp-2">
                         {article.title}
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="p-4 pt-0">
+                    </h3>
                     <p className="text-sm text-muted-foreground line-clamp-2">
                         {article.excerpt}
                     </p>
-                </CardContent>
-                <CardFooter className="p-4 mt-auto border-t bg-muted/5 pt-3 text-xs text-muted-foreground flex items-center gap-2">
-                    <Avatar className="w-5 h-5">
-                        <AvatarImage src={article.authorImage} />
-                        <AvatarFallback><UserIcon className="w-3 h-3" /></AvatarFallback>
-                    </Avatar>
-                    <span className="font-medium">{article.author}</span>
-                </CardFooter>
-            </Card>
+
+                    {/* Meta */}
+                    <div className="flex items-center justify-between pt-3 border-t border-white/10">
+                        <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/50 to-accent/50 flex items-center justify-center text-xs font-bold">
+                                {article.author?.charAt(0) || "A"}
+                            </div>
+                            <span className="text-sm text-muted-foreground">{article.author}</span>
+                        </div>
+                        <span className="text-xs text-muted-foreground">
+                            {formatDate(article.publishedAt)}
+                        </span>
+                    </div>
+                </div>
+            </article>
         </Link>
     );
 }

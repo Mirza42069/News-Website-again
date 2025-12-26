@@ -1,23 +1,29 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Public_Sans } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
+import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import { ConvexClientProvider } from "./ConvexClientProvider";
+import { SiteHeader } from "@/components/header";
+import { SiteFooter } from "@/components/footer";
 
-const publicSans = Public_Sans({ subsets: ['latin'], variable: '--font-sans' });
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
   subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
+  variable: "--font-geist-mono",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "AKHTARBERAK",
-  description: "A modern news platform built with Next.js and Shadcn UI.",
+  title: {
+    default: "Newsroom",
+    template: "%s • Newsroom",
+  },
+  description: "Modern minimal news & blog.",
 };
 
 export default function RootLayout({
@@ -26,13 +32,27 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={publicSans.variable}>
+    <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}
       >
-        <ConvexClientProvider>{children}</ConvexClientProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <ConvexClientProvider>
+            <div className="min-h-dvh flex flex-col">
+              <SiteHeader />
+              <main className="flex-1 mx-auto w-full max-w-6xl px-4 py-8">
+                {children}
+              </main>
+              <SiteFooter />
+            </div>
+          </ConvexClientProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
 }
-

@@ -2,113 +2,137 @@
 
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import { Header } from "@/components/header";
-import { NewsCard } from "@/components/news-card";
-import { FeaturedNews } from "@/components/featured-news";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { TrendingUpIcon } from "lucide-react";
+import { NewspaperIcon } from "lucide-react";
+import Link from "next/link";
 
 export default function HomePage() {
     const allArticles = useQuery(api.news.list);
     const seed = useMutation(api.news.seed);
 
-    // Loading Skeleton
+    // Loading
     if (allArticles === undefined) {
         return (
-            <div className="min-h-screen bg-background font-sans antialiased">
-                <Header />
-                <main className="container py-8 space-y-8">
-                    <div className="space-y-4">
-                        <Skeleton className="h-10 w-1/4" />
-                        <div className="grid gap-6 md:grid-cols-2">
-                            <Skeleton className="h-[400px] rounded-xl" />
-                            <div className="space-y-4">
-                                <Skeleton className="h-32 rounded-lg" />
-                                <Skeleton className="h-32 rounded-lg" />
-                                <Skeleton className="h-32 rounded-lg" />
-                            </div>
-                        </div>
-                    </div>
-                </main>
+            <div className="space-y-8">
+                <Skeleton className="h-32 w-full" />
+                <div className="grid gap-6 sm:grid-cols-2">
+                    <Skeleton className="h-24" />
+                    <Skeleton className="h-24" />
+                </div>
             </div>
         );
     }
 
-    // Seeding State
+    // Empty
     if (allArticles.length === 0) {
         return (
-            <div className="min-h-screen bg-background flex flex-col">
-                <Header />
-                <div className="flex-1 flex flex-col items-center justify-center space-y-4 p-8 text-center">
-                    <h1 className="text-2xl font-bold">Welcome to AKHTARBERAK</h1>
-                    <p className="text-muted-foreground">Database is empty. Seed sample articles to view the design.</p>
-                    <Button onClick={() => seed().then(() => window.location.reload())}>
-                        Seed Database
-                    </Button>
-                </div>
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+                <NewspaperIcon className="h-10 w-10 text-muted-foreground mb-4" />
+                <h1 className="text-xl font-semibold mb-2">Welcome to Newsroom</h1>
+                <p className="text-muted-foreground mb-6 max-w-sm">
+                    Add sample articles to get started.
+                </p>
+                <Button onClick={() => seed().then(() => window.location.reload())}>
+                    Seed Articles
+                </Button>
             </div>
-        )
+        );
     }
 
-    const featured = allArticles.filter(a => a.featured);
-    const latest = allArticles.filter(a => !a.featured);
-    const trending = allArticles.slice(0, 5);
+    const featured = allArticles.find((a) => a.featured) || allArticles[0];
+    const articles = allArticles.filter((a) => a._id !== featured._id).slice(0, 6);
+    const trending = allArticles.slice(0, 4);
 
     return (
-        <div className="min-h-screen bg-background font-sans antialiased">
-            <Header />
+        <div className="grid gap-10 lg:grid-cols-[1fr_280px]">
+            {/* Main */}
+            <div className="space-y-10">
+                {/* Featured */}
+                <article>
+                    <Badge variant="secondary" className="mb-3">Featured</Badge>
+                    <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight mb-2">
+                        <Link href={`/article/${featured.slug}`} className="hover:underline">
+                            {featured.title}
+                        </Link>
+                    </h1>
+                    <p className="text-muted-foreground mb-3 line-clamp-2">
+                        {featured.excerpt}
+                    </p>
+                    <Link
+                        href={`/article/${featured.slug}`}
+                        className="text-sm font-medium hover:underline"
+                    >
+                        Read more →
+                    </Link>
+                </article>
 
-            <main className="container py-10 space-y-16">
+                <hr />
 
-                {/* Featured Section */}
-                <FeaturedNews articles={allArticles} />
-
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-
-                    {/* Main Content - Latest News */}
-                    <div className="lg:col-span-8 space-y-6">
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-2xl font-bold tracking-tight">Latest News</h2>
-                            <Separator className="flex-1 ml-6" />
-                        </div>
-
-                        <div className="grid gap-6 sm:grid-cols-2">
-                            {latest.map((article) => (
-                                <NewsCard key={article._id} article={article} />
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Sidebar - Trending */}
-                    <aside className="lg:col-span-4 space-y-6">
-                        <Card>
-                            <CardHeader className="pb-3 border-b">
-                                <CardTitle className="flex items-center gap-2 text-lg">
-                                    <TrendingUpIcon className="w-5 h-5 text-primary" />
-                                    Trending Now
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent className="pt-4 grid gap-0">
-                                {trending.map((article, i) => (
-                                    <div key={article._id} className="flex items-start gap-4 py-3 border-b last:border-0 last:pb-0">
-                                        <span className="text-2xl font-bold text-muted-foreground/40 w-4">{i + 1}</span>
-                                        <div className="space-y-1">
-                                            <h4 className="font-medium text-sm leading-tight hover:text-primary cursor-pointer line-clamp-2">
-                                                {article.title}
-                                            </h4>
-                                            <p className="text-xs text-muted-foreground">{article.category}</p>
-                                        </div>
-                                    </div>
-                                ))}
-                            </CardContent>
-                        </Card>
-                    </aside>
-
+                {/* Articles */}
+                <div className="grid gap-8 sm:grid-cols-2">
+                    {articles.map((article) => (
+                        <article key={article._id}>
+                            <div className="flex items-center gap-2 mb-2">
+                                <Badge variant="outline" className="text-xs">
+                                    {article.category}
+                                </Badge>
+                                <span className="text-xs text-muted-foreground">
+                                    {new Date(article.publishedAt).toLocaleDateString("en-US", {
+                                        month: "short",
+                                        day: "numeric",
+                                    })}
+                                </span>
+                            </div>
+                            <h2 className="font-medium mb-1">
+                                <Link
+                                    href={`/article/${article.slug}`}
+                                    className="hover:underline line-clamp-2"
+                                >
+                                    {article.title}
+                                </Link>
+                            </h2>
+                            <p className="text-sm text-muted-foreground line-clamp-2">
+                                {article.excerpt}
+                            </p>
+                        </article>
+                    ))}
                 </div>
-            </main>
+            </div>
+
+            {/* Sidebar */}
+            <aside className="space-y-8">
+                <div>
+                    <h3 className="text-sm font-semibold mb-4">Trending</h3>
+                    <div className="space-y-3">
+                        {trending.map((article, i) => (
+                            <Link
+                                key={article._id}
+                                href={`/article/${article.slug}`}
+                                className="flex gap-3 group"
+                            >
+                                <span className="text-muted-foreground text-sm font-medium w-4">
+                                    {i + 1}
+                                </span>
+                                <span className="text-sm group-hover:underline line-clamp-2">
+                                    {article.title}
+                                </span>
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+
+                <hr />
+
+                <div>
+                    <h3 className="text-sm font-semibold mb-2">Newsletter</h3>
+                    <p className="text-sm text-muted-foreground mb-3">
+                        Weekly digest, no spam.
+                    </p>
+                    <Button size="sm" className="w-full">Subscribe</Button>
+                </div>
+            </aside>
         </div>
     );
 }
