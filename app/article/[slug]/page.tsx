@@ -7,6 +7,8 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { VoteButtons } from "@/components/vote-buttons";
 import { AISummarizeButton } from "@/components/ai-summarize";
+import { ShareModal } from "@/components/share-modal";
+import { ImageGallery } from "@/components/image-gallery";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -15,7 +17,6 @@ import {
     ArrowLeftIcon,
     CalendarIcon,
     ClockIcon,
-    ShareIcon,
     BookmarkIcon,
     UserIcon,
     SparklesIcon,
@@ -30,13 +31,20 @@ function formatDate(timestamp: number): string {
     });
 }
 
+// Mock additional images for gallery demo
+const mockGalleryImages = [
+    "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800",
+    "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=800",
+    "https://images.unsplash.com/photo-1495020689067-958852a7765e?w=800",
+];
+
 export default function ArticlePage() {
     const params = useParams();
     const slug = params.slug as string;
     const [aiSummary, setAiSummary] = React.useState<string | null>(null);
+    const [bookmarked, setBookmarked] = React.useState(false);
 
     const article = useQuery(api.news.getBySlug, { slug });
-    const allArticles = useQuery(api.news.list);
 
     // Loading
     if (article === undefined) {
@@ -84,6 +92,11 @@ export default function ArticlePage() {
 
     // Content to display (either original or AI summary)
     const displayContent = aiSummary || article.content;
+
+    // Use article image + mock images for gallery demo
+    const galleryImages = article.imageUrl
+        ? [article.imageUrl, ...mockGalleryImages]
+        : mockGalleryImages;
 
     return (
         <div className="animate-fade-in">
@@ -175,24 +188,21 @@ export default function ArticlePage() {
                             <div className="md:hidden mr-2">
                                 <VoteButtons initialVotes={baseVotes} orientation="horizontal" size="sm" />
                             </div>
-                            <Button variant="ghost" size="icon-sm" className="text-muted-foreground hover:text-violet-500">
-                                <ShareIcon className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon-sm" className="text-muted-foreground hover:text-violet-500">
-                                <BookmarkIcon className="h-4 w-4" />
+                            <ShareModal title={article.title} />
+                            <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                className={bookmarked ? "text-violet-500" : "text-muted-foreground hover:text-violet-500"}
+                                onClick={() => setBookmarked(!bookmarked)}
+                            >
+                                <BookmarkIcon className={`h-4 w-4 ${bookmarked ? "fill-current" : ""}`} />
                             </Button>
                         </div>
                     </div>
 
-                    {/* Featured Image - hide when showing summary */}
-                    {article.imageUrl && !aiSummary && (
-                        <div className="relative aspect-[16/9] overflow-hidden rounded-lg">
-                            <img
-                                src={article.imageUrl}
-                                alt={article.title}
-                                className="h-full w-full object-cover"
-                            />
-                        </div>
+                    {/* Image Gallery - hide when showing summary */}
+                    {!aiSummary && (
+                        <ImageGallery images={galleryImages} alt={article.title} />
                     )}
 
                     {/* AI Summary Badge */}

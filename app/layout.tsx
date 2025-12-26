@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { ClerkProvider } from "@clerk/nextjs";
+import { TRPCProvider } from "@/lib/trpc";
 import "./globals.css";
 import { ConvexClientProvider } from "./ConvexClientProvider";
 import { SiteHeader } from "@/components/header";
@@ -43,14 +44,16 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <ConvexClientProvider>
-              <div className="min-h-dvh flex flex-col">
-                <SiteHeader />
-                <main className="flex-1 mx-auto w-full max-w-5xl px-6 py-12">
-                  {children}
-                </main>
-              </div>
-            </ConvexClientProvider>
+            <TRPCProvider>
+              <ConvexClientProvider>
+                <div className="min-h-dvh flex flex-col">
+                  <SiteHeader />
+                  <main className="flex-1 mx-auto w-full max-w-5xl px-6 py-12">
+                    {children}
+                  </main>
+                </div>
+              </ConvexClientProvider>
+            </TRPCProvider>
           </ThemeProvider>
         </body>
       </html>
