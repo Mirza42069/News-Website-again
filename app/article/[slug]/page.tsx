@@ -1,14 +1,13 @@
 "use client";
 
 import * as React from "react";
+import dynamic from "next/dynamic";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { VoteButtons } from "@/components/vote-buttons";
 import { AISummarizeButton } from "@/components/ai-summarize";
-import { ShareModal } from "@/components/share-modal";
-import { ImageGallery } from "@/components/image-gallery";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -20,6 +19,16 @@ import {
     UserIcon,
     SparklesIcon,
 } from "lucide-react";
+
+// Dynamic imports for heavy components - reduces initial bundle
+const ShareModal = dynamic(() => import("@/components/share-modal").then(mod => ({ default: mod.ShareModal })), {
+    loading: () => <div className="w-8 h-8" />,
+    ssr: false,
+});
+
+const ImageGallery = dynamic(() => import("@/components/image-gallery").then(mod => ({ default: mod.ImageGallery })), {
+    loading: () => <div className="aspect-[16/9] bg-muted/50 rounded-lg animate-pulse" />,
+});
 
 function formatDate(timestamp: number): string {
     return new Date(timestamp).toLocaleDateString("en-US", {

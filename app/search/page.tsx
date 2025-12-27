@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeftIcon, SearchIcon } from "lucide-react";
@@ -60,8 +61,14 @@ function SearchResults() {
                         <Link key={article._id} href={`/article/${article.slug}`} className="block group">
                             <article className="flex gap-4 p-4 rounded-lg border border-transparent hover:border-violet-500/20 hover:bg-violet-500/5 transition-colors">
                                 {article.imageUrl && (
-                                    <div className="w-24 h-16 rounded overflow-hidden flex-shrink-0">
-                                        <img src={article.imageUrl} alt="" className="w-full h-full object-cover" />
+                                    <div className="relative w-24 h-16 rounded overflow-hidden flex-shrink-0">
+                                        <Image
+                                            src={article.imageUrl}
+                                            alt=""
+                                            fill
+                                            sizes="96px"
+                                            className="object-cover"
+                                        />
                                     </div>
                                 )}
                                 <div className="flex-1 min-w-0 space-y-1">

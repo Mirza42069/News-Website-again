@@ -11,7 +11,8 @@ interface VoteButtonsProps {
     preVoted?: "up" | "down";
 }
 
-export function VoteButtons({
+// Memoized component to prevent unnecessary re-renders
+export const VoteButtons = React.memo(function VoteButtons({
     initialVotes = 0,
     orientation = "vertical",
     size = "default",
@@ -59,8 +60,8 @@ export function VoteButtons({
                     <ChevronUpIcon className={iconSize} />
                 </Button>
                 <span className={`text-sm font-medium min-w-[3ch] text-center ${votes > 0 && userVote === "up" ? "text-violet-500" :
-                        votes < 0 || userVote === "down" ? "text-red-500" :
-                            "text-muted-foreground"
+                    votes < 0 || userVote === "down" ? "text-red-500" :
+                        "text-muted-foreground"
                     }`}>
                     {votes}
                 </span>
@@ -87,8 +88,8 @@ export function VoteButtons({
                 <ChevronUpIcon className={iconSize} />
             </Button>
             <span className={`text-sm font-medium ${votes > 0 && userVote === "up" ? "text-violet-500" :
-                    votes < 0 || userVote === "down" ? "text-red-500" :
-                        "text-muted-foreground"
+                votes < 0 || userVote === "down" ? "text-red-500" :
+                    "text-muted-foreground"
                 }`}>
                 {votes}
             </span>
@@ -102,4 +103,4 @@ export function VoteButtons({
             </Button>
         </div>
     );
-}
+});

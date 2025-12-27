@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { XIcon, ChevronLeftIcon, ChevronRightIcon, ZoomInIcon } from "lucide-react";
 
@@ -50,10 +51,13 @@ export function ImageGallery({ images, alt = "Article image" }: ImageGalleryProp
                     className="relative aspect-[16/9] overflow-hidden rounded-lg cursor-zoom-in group"
                     onClick={() => setIsFullscreen(true)}
                 >
-                    <img
+                    <Image
                         src={images[0]}
                         alt={alt}
-                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 800px"
+                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                        priority
                     />
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
                         <ZoomInIcon className="h-8 w-8 text-white opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-lg" />
@@ -74,12 +78,17 @@ export function ImageGallery({ images, alt = "Article image" }: ImageGalleryProp
                         >
                             <XIcon className="h-6 w-6" />
                         </Button>
-                        <img
-                            src={images[0]}
-                            alt={alt}
-                            className="max-h-[90vh] max-w-[90vw] object-contain"
-                            onClick={(e) => e.stopPropagation()}
-                        />
+                        <div className="relative max-h-[90vh] max-w-[90vw] w-full h-full">
+                            <Image
+                                src={images[0]}
+                                alt={alt}
+                                fill
+                                sizes="90vw"
+                                className="object-contain"
+                                onClick={(e) => e.stopPropagation()}
+                                priority
+                            />
+                        </div>
                     </div>
                 )}
             </>
@@ -95,10 +104,13 @@ export function ImageGallery({ images, alt = "Article image" }: ImageGalleryProp
                     className="relative aspect-[16/9] overflow-hidden rounded-lg cursor-zoom-in group"
                     onClick={() => setIsFullscreen(true)}
                 >
-                    <img
+                    <Image
                         src={images[currentIndex]}
                         alt={`${alt} ${currentIndex + 1}`}
-                        className="h-full w-full object-cover transition-all duration-300"
+                        fill
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 800px"
+                        className="object-cover transition-all duration-300"
+                        priority={currentIndex === 0}
                     />
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
 
@@ -132,15 +144,17 @@ export function ImageGallery({ images, alt = "Article image" }: ImageGalleryProp
                         <button
                             key={idx}
                             onClick={() => setCurrentIndex(idx)}
-                            className={`flex-shrink-0 w-16 h-12 rounded-md overflow-hidden transition-all ${idx === currentIndex
-                                    ? "ring-2 ring-violet-500 ring-offset-2 ring-offset-background"
-                                    : "opacity-60 hover:opacity-100"
+                            className={`relative flex-shrink-0 w-16 h-12 rounded-md overflow-hidden transition-all ${idx === currentIndex
+                                ? "ring-2 ring-violet-500 ring-offset-2 ring-offset-background"
+                                : "opacity-60 hover:opacity-100"
                                 }`}
                         >
-                            <img
+                            <Image
                                 src={img}
                                 alt={`Thumbnail ${idx + 1}`}
-                                className="w-full h-full object-cover"
+                                fill
+                                sizes="64px"
+                                className="object-cover"
                             />
                         </button>
                     ))}
@@ -171,12 +185,17 @@ export function ImageGallery({ images, alt = "Article image" }: ImageGalleryProp
                         <ChevronLeftIcon className="h-8 w-8" />
                     </Button>
 
-                    <img
-                        src={images[currentIndex]}
-                        alt={`${alt} ${currentIndex + 1}`}
-                        className="max-h-[85vh] max-w-[85vw] object-contain"
-                        onClick={(e) => e.stopPropagation()}
-                    />
+                    <div className="relative max-h-[85vh] max-w-[85vw] w-full h-full">
+                        <Image
+                            src={images[currentIndex]}
+                            alt={`${alt} ${currentIndex + 1}`}
+                            fill
+                            sizes="85vw"
+                            className="object-contain"
+                            onClick={(e) => e.stopPropagation()}
+                            priority
+                        />
+                    </div>
 
                     <Button
                         variant="ghost"
@@ -193,15 +212,17 @@ export function ImageGallery({ images, alt = "Article image" }: ImageGalleryProp
                             <button
                                 key={idx}
                                 onClick={(e) => { e.stopPropagation(); setCurrentIndex(idx); }}
-                                className={`w-12 h-8 rounded overflow-hidden transition-all ${idx === currentIndex
-                                        ? "ring-2 ring-violet-500"
-                                        : "opacity-50 hover:opacity-100"
+                                className={`relative w-12 h-8 rounded overflow-hidden transition-all ${idx === currentIndex
+                                    ? "ring-2 ring-violet-500"
+                                    : "opacity-50 hover:opacity-100"
                                     }`}
                             >
-                                <img
+                                <Image
                                     src={img}
                                     alt={`Thumbnail ${idx + 1}`}
-                                    className="w-full h-full object-cover"
+                                    fill
+                                    sizes="48px"
+                                    className="object-cover"
                                 />
                             </button>
                         ))}
@@ -211,3 +232,4 @@ export function ImageGallery({ images, alt = "Article image" }: ImageGalleryProp
         </>
     );
 }
+
