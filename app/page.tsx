@@ -1,11 +1,10 @@
 "use client";
 
-import { useQuery, useMutation } from "convex/react";
+import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { VoteButtons } from "@/components/vote-buttons";
 import { ArrowRightIcon, SparklesIcon } from "lucide-react";
 import Link from "next/link";
@@ -13,36 +12,23 @@ import Link from "next/link";
 // Generate vote count - some articles get negative votes
 function getVoteCount(articleId: string, index?: number): { votes: number; preVoted?: "down" } {
     const charCode = articleId.charCodeAt(0);
-
-    // Make some articles have negative votes
     if (charCode % 4 === 0 || (index !== undefined && index % 3 === 2)) {
         return { votes: -12, preVoted: "down" };
     }
     if (charCode % 5 === 0) {
         return { votes: -5, preVoted: "down" };
     }
-
     return { votes: charCode % 50 + 10 };
 }
 
 export default function HomePage() {
     const allArticles = useQuery(api.news.list);
-    const seed = useMutation(api.news.seed);
 
     // Loading
     if (allArticles === undefined) {
         return (
-            <div className="space-y-12 animate-fade-in">
-                <div className="space-y-4">
-                    <Skeleton className="h-6 w-24" />
-                    <Skeleton className="h-10 w-3/4" />
-                    <Skeleton className="h-5 w-1/2" />
-                </div>
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                    {[...Array(6)].map((_, i) => (
-                        <Skeleton key={i} className="h-64 rounded-lg" />
-                    ))}
-                </div>
+            <div className="flex items-center justify-center min-h-[60vh]">
+                <div className="text-muted-foreground">Loading...</div>
             </div>
         );
     }
@@ -61,12 +47,6 @@ export default function HomePage() {
                             Get started by adding some sample articles to explore the platform.
                         </p>
                     </div>
-                    <Button
-                        className="bg-violet-500 hover:bg-violet-600 text-white"
-                        onClick={() => seed().then(() => window.location.reload())}
-                    >
-                        Add Sample Articles
-                    </Button>
                 </div>
             </div>
         );
@@ -75,8 +55,6 @@ export default function HomePage() {
     const featured = allArticles.find((a) => a.featured) || allArticles[0];
     const articles = allArticles.filter((a) => a._id !== featured._id).slice(0, 6);
     const latestArticles = allArticles.slice(0, 5);
-
-    // Featured article votes
     const featuredVoteData = getVoteCount(featured._id);
 
     return (
@@ -91,12 +69,8 @@ export default function HomePage() {
                 </div>
 
                 <div className="flex gap-6">
-                    {/* Votes */}
                     <div className="hidden sm:block">
-                        <VoteButtons
-                            initialVotes={featuredVoteData.votes}
-                            preVoted={featuredVoteData.preVoted}
-                        />
+                        <VoteButtons initialVotes={featuredVoteData.votes} preVoted={featuredVoteData.preVoted} />
                     </div>
 
                     <article className="group flex-1">
@@ -108,24 +82,12 @@ export default function HomePage() {
                                 {featured.excerpt}
                             </p>
                             <div className="flex items-center gap-4 pt-2">
-                                {/* Mobile votes */}
                                 <div className="sm:hidden">
-                                    <VoteButtons
-                                        initialVotes={featuredVoteData.votes}
-                                        orientation="horizontal"
-                                        size="sm"
-                                        preVoted={featuredVoteData.preVoted}
-                                    />
+                                    <VoteButtons initialVotes={featuredVoteData.votes} orientation="horizontal" size="sm" preVoted={featuredVoteData.preVoted} />
                                 </div>
-                                <Badge variant="secondary" className="font-normal">
-                                    {featured.category}
-                                </Badge>
+                                <Badge variant="secondary" className="font-normal">{featured.category}</Badge>
                                 <span className="text-sm text-muted-foreground">
-                                    {new Date(featured.publishedAt).toLocaleDateString("en-US", {
-                                        month: "long",
-                                        day: "numeric",
-                                        year: "numeric",
-                                    })}
+                                    {new Date(featured.publishedAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
                                 </span>
                                 <span className="text-sm text-violet-500 font-medium inline-flex items-center gap-1 group-hover:gap-2 transition-all">
                                     Read article <ArrowRightIcon className="h-3 w-3" />
@@ -136,19 +98,14 @@ export default function HomePage() {
                 </div>
             </section>
 
-            {/* Thin divider */}
             <div className="h-px bg-violet-500/20" />
 
             {/* Main Content Grid */}
             <div className="grid gap-10 lg:grid-cols-[1fr_260px]">
-                {/* Articles */}
                 <section className="space-y-6">
                     <div className="flex items-center justify-between">
                         <h2 className="text-xl font-semibold">Latest Stories</h2>
-                        <Link
-                            href="/category/world"
-                            className="text-sm text-muted-foreground hover:text-violet-500 transition-colors inline-flex items-center gap-1"
-                        >
+                        <Link href="/category/world" className="text-sm text-muted-foreground hover:text-violet-500 transition-colors inline-flex items-center gap-1">
                             View all <ArrowRightIcon className="h-3 w-3" />
                         </Link>
                     </div>
@@ -158,30 +115,17 @@ export default function HomePage() {
                             const voteData = getVoteCount(article._id, index);
                             return (
                                 <div key={article._id} className="flex gap-3">
-                                    <VoteButtons
-                                        initialVotes={voteData.votes}
-                                        size="sm"
-                                        preVoted={voteData.preVoted}
-                                    />
+                                    <VoteButtons initialVotes={voteData.votes} size="sm" preVoted={voteData.preVoted} />
                                     <article className="group flex-1 space-y-3">
                                         <Link href={`/article/${article.slug}`} className="block">
                                             <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2">
-                                                <Badge variant="outline" className="font-normal text-xs border-violet-500/30">
-                                                    {article.category}
-                                                </Badge>
-                                                <span>
-                                                    {new Date(article.publishedAt).toLocaleDateString("en-US", {
-                                                        month: "short",
-                                                        day: "numeric",
-                                                    })}
-                                                </span>
+                                                <Badge variant="outline" className="font-normal text-xs border-violet-500/30">{article.category}</Badge>
+                                                <span>{new Date(article.publishedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
                                             </div>
                                             <h3 className="font-semibold text-lg leading-snug group-hover:text-violet-500 transition-colors line-clamp-2">
                                                 {article.title}
                                             </h3>
-                                            <p className="text-sm text-muted-foreground line-clamp-2 mt-2">
-                                                {article.excerpt}
-                                            </p>
+                                            <p className="text-sm text-muted-foreground line-clamp-2 mt-2">{article.excerpt}</p>
                                         </Link>
                                     </article>
                                 </div>
@@ -190,27 +134,16 @@ export default function HomePage() {
                     </div>
                 </section>
 
-                {/* Sidebar - Trending Only */}
                 <aside>
                     <Card className="border-0 bg-violet-500/5">
                         <CardHeader className="pb-3">
-                            <CardTitle className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
-                                Trending Now
-                            </CardTitle>
+                            <CardTitle className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Trending Now</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             {latestArticles.map((article, i) => (
-                                <Link
-                                    key={article._id}
-                                    href={`/article/${article.slug}`}
-                                    className="flex gap-3 group"
-                                >
-                                    <span className="text-2xl font-bold text-violet-500/40 w-6 shrink-0">
-                                        {i + 1}
-                                    </span>
-                                    <span className="text-sm leading-snug group-hover:text-violet-500 transition-colors line-clamp-2">
-                                        {article.title}
-                                    </span>
+                                <Link key={article._id} href={`/article/${article.slug}`} className="flex gap-3 group">
+                                    <span className="text-2xl font-bold text-violet-500/40 w-6 shrink-0">{i + 1}</span>
+                                    <span className="text-sm leading-snug group-hover:text-violet-500 transition-colors line-clamp-2">{article.title}</span>
                                 </Link>
                             ))}
                         </CardContent>
