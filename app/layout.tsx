@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { ClerkProvider } from "@clerk/nextjs";
 import { TRPCProvider } from "@/lib/trpc";
+import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 import { ConvexClientProvider } from "./ConvexClientProvider";
 import { SiteHeader } from "@/components/header";
@@ -52,6 +53,7 @@ export default function RootLayout({
                     {children}
                   </main>
                 </div>
+                <Toaster position="bottom-right" />
               </ConvexClientProvider>
             </TRPCProvider>
           </ThemeProvider>

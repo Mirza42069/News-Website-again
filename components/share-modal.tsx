@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { LinkIcon, CheckIcon } from "lucide-react";
+import { toast } from "sonner";
 
 interface ShareModalProps {
     title: string;
@@ -16,7 +17,19 @@ export function ShareModal({ title, url }: ShareModalProps) {
     const handleCopy = async () => {
         await navigator.clipboard.writeText(shareUrl);
         setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
+        toast("Copied!", {
+            duration: 1500,
+            style: {
+                background: "#0a0a0a",
+                color: "white",
+                border: "1px solid #222",
+                padding: "8px 16px",
+                fontSize: "14px",
+                minWidth: "auto",
+                width: "fit-content",
+            },
+        });
+        setTimeout(() => setCopied(false), 1500);
     };
 
     return (
@@ -31,3 +44,4 @@ export function ShareModal({ title, url }: ShareModalProps) {
         </Button>
     );
 }
+
