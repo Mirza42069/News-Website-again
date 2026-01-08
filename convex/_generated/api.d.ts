@@ -8,7 +8,9 @@
  * @module
  */
 
+import type * as addArticles from "../addArticles.js";
 import type * as comments from "../comments.js";
+import type * as fixHeaders from "../fixHeaders.js";
 import type * as news from "../news.js";
 
 import type {
@@ -18,7 +20,9 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  addArticles: typeof addArticles;
   comments: typeof comments;
+  fixHeaders: typeof fixHeaders;
   news: typeof news;
 }>;
 

@@ -18,6 +18,11 @@ const nextConfig: NextConfig = {
         hostname: "*.unsplash.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "img.clerk.com",
+        pathname: "/**",
+      },
     ],
     // Modern image formats for smaller bundles
     formats: ["image/avif", "image/webp"],

@@ -8,6 +8,7 @@ import { SparklesIcon } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { sanitizeImageUrl } from "@/lib/image-utils";
+import { HeroCarousel } from "@/components/hero-carousel";
 
 function formatDate(timestamp: number): string {
     return new Date(timestamp).toLocaleDateString("en-US", {
@@ -62,9 +63,8 @@ export default function HomePage() {
         );
     }
 
-    // Only use the first article for hero, rest for grid (avoid duplicates)
-    const heroArticle = allArticles[0];
-    const gridArticles = allArticles.slice(1, 7);
+    // Grid articles start from index 4 since carousel uses first 4
+    const gridArticles = allArticles.slice(4, 10);
     const trendingArticles = allArticles.slice(0, 5);
     const leftColumnArticle = gridArticles[0];
     const middleColumnArticles = gridArticles.slice(1, 3);
@@ -72,30 +72,8 @@ export default function HomePage() {
 
     return (
         <div className="animate-fade-in space-y-10">
-            {/* Hero Section - Single Featured Article */}
-            <section className="relative w-full aspect-[16/7] rounded-xl overflow-hidden">
-                <Image
-                    src={sanitizeImageUrl(heroArticle.imageUrl)}
-                    alt={heroArticle.title}
-                    fill
-                    className="object-cover"
-                    priority
-                />
-                {/* Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                {/* Content */}
-                <Link
-                    href={`/article/${heroArticle.slug}`}
-                    className="absolute bottom-0 left-0 right-0 p-8 text-white"
-                >
-                    <h1 className="text-2xl md:text-4xl font-bold mb-3 max-w-2xl leading-tight">
-                        {heroArticle.title}
-                    </h1>
-                    <p className="text-white/80 text-sm md:text-base max-w-xl line-clamp-3">
-                        {heroArticle.excerpt}
-                    </p>
-                </Link>
-            </section>
+            {/* Hero Carousel Section */}
+            <HeroCarousel articles={allArticles.slice(0, 4)} />
 
             {/* Main Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr_1fr_280px] gap-8">

@@ -57,11 +57,6 @@ function formatDate(timestamp: number): string {
     });
 }
 
-const mockGalleryImages = [
-    "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800",
-    "https://images.unsplash.com/photo-1585829365295-ab7cd400c167?w=800",
-    "https://images.unsplash.com/photo-1495020689067-958852a7765e?w=800",
-];
 
 export default function ArticlePage() {
     const params = useParams();
@@ -103,17 +98,16 @@ export default function ArticlePage() {
     const baseVotes = article._id.charCodeAt(0) % 100 + 50;
     const displayContent = aiSummary || article.content;
     const sanitizedHeroImage = sanitizeImageUrl(article.imageUrl);
-    const galleryImages = article.imageUrl ? [sanitizedHeroImage, ...mockGalleryImages.map(sanitizeImageUrl)] : mockGalleryImages.map(sanitizeImageUrl);
+    const galleryImages = article.imageUrl ? [sanitizedHeroImage] : [];
     const categoryColor = getCategoryColor(article.category);
 
     return (
-        <div className="animate-fade-in">
-            <ReadingProgress />
+        <div className="animate-fade-in max-w-4xl mx-auto">
             <Button variant="ghost" size="sm" asChild className="mb-8 text-muted-foreground hover:text-violet-500">
                 <Link href="/"><ArrowLeftIcon className="mr-2 h-4 w-4" />Back</Link>
             </Button>
 
-            <div className="flex gap-6">
+            <div className="flex gap-6 justify-center">
                 <div className="hidden md:block sticky top-24 self-start">
                     <VoteButtons initialVotes={baseVotes} />
                 </div>
