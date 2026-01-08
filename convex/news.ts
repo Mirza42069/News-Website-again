@@ -1,4 +1,4 @@
-import { query, mutation } from "./_generated/server";
+import { query, mutation, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 
 // Get all articles, sorted by published date (newest first)
@@ -97,7 +97,7 @@ export const create = mutation({
 });
 
 // Seed sample data
-export const seed = mutation({
+export const seed = internalMutation({
     args: {},
     handler: async (ctx) => {
         // Check if already seeded
@@ -232,7 +232,7 @@ The match featured:
 
 "We believed in ourselves when no one else did," said the team captain in an emotional post-game interview.`,
                 category: "Sports",
-                imageUrl: "https://images.unsplash.com/photo-1461896836934- voices?w=1200",
+                imageUrl: "/images/sports-victory.png",
                 author: "Lisa Rodriguez",
                 authorImage: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100",
                 featured: false,
@@ -331,4 +331,20 @@ The site includes:
 
         return "Seeded " + sampleArticles.length + " articles!";
     },
+});
+
+export const fixSportsImage = internalMutation({
+  handler: async (ctx) => {
+    const article = await ctx.db
+      .query("articles")
+      .filter((q) => q.eq(q.field("slug"), "championship-final-upset"))
+      .unique();
+    if (article) {
+      await ctx.db.patch(article._id, {
+        imageUrl: "/images/sports-victory.png"
+      });
+      return "Fixed sports image!";
+    }
+    return "Article not found.";
+  },
 });

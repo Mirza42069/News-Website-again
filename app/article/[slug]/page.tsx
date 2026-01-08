@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import dynamic from "next/dynamic";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useParams } from "next/navigation";
 import Link from "next/link";
@@ -19,6 +19,8 @@ import {
     UserIcon,
     SparklesIcon,
 } from "lucide-react";
+import { toast } from "sonner";
+import { sanitizeImageUrl } from "@/lib/image-utils";
 
 // Dynamic imports for heavy components - reduces initial bundle
 const ShareModal = dynamic(() => import("@/components/share-modal").then(mod => ({ default: mod.ShareModal })), {
@@ -84,7 +86,8 @@ export default function ArticlePage() {
 
     const baseVotes = article._id.charCodeAt(0) % 100 + 50;
     const displayContent = aiSummary || article.content;
-    const galleryImages = article.imageUrl ? [article.imageUrl, ...mockGalleryImages] : mockGalleryImages;
+    const sanitizedHeroImage = sanitizeImageUrl(article.imageUrl);
+    const galleryImages = article.imageUrl ? [sanitizedHeroImage, ...mockGalleryImages.map(sanitizeImageUrl)] : mockGalleryImages.map(sanitizeImageUrl);
 
     return (
         <div className="animate-fade-in">
@@ -119,8 +122,8 @@ export default function ArticlePage() {
                             )}
                         </div>
 
-                        <h1 className="text-3xl md:text-4xl font-bold leading-tight text-balance">{article.title}</h1>
-                        <p className="text-xl text-muted-foreground leading-relaxed">{article.excerpt}</p>
+                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-black leading-[1.1] tracking-tight">{article.title}</h1>
+                        <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed font-light">{article.excerpt}</p>
 
                         <div className="flex items-center gap-3">
                             <AISummarizeButton content={article.content} title={article.title} onSummaryChange={setAiSummary} isActive={aiSummary !== null} />
@@ -167,27 +170,27 @@ export default function ArticlePage() {
                         </div>
                     )}
 
-                    <div className="prose prose-lg max-w-none">
+                    <div className="prose-serif max-w-none">
                         {displayContent.split("\n\n").map((paragraph, i) => {
                             if (paragraph.startsWith("## ")) {
-                                return <h2 key={i} className="text-xl font-bold mt-10 mb-4 text-foreground">{paragraph.replace("## ", "")}</h2>;
+                                return <h2 key={i}>{paragraph.replace("## ", "")}</h2>;
                             }
                             if (paragraph.startsWith("**") && paragraph.endsWith("**")) {
-                                return <h3 key={i} className="text-lg font-semibold mt-6 mb-3 text-foreground">{paragraph.replace(/\*\*/g, "")}</h3>;
+                                return <h3 key={i}>{paragraph.replace(/\*\*/g, "")}</h3>;
                             }
                             if (paragraph.startsWith("- ")) {
                                 const items = paragraph.split("\n").filter((l: string) => l.startsWith("- "));
                                 return (
-                                    <ul key={i} className="space-y-2 my-6 pl-4 border-l-2 border-violet-500">
-                                        {items.map((item: string, j: number) => <li key={j} className="text-muted-foreground pl-3">{item.replace("- ", "")}</li>)}
+                                    <ul key={i}>
+                                        {items.map((item: string, j: number) => <li key={j}>{item.replace("- ", "")}</li>)}
                                     </ul>
                                 );
                             }
-                            if (paragraph.startsWith("---")) return <hr key={i} className="my-6 border-violet-500/20" />;
+                            if (paragraph.startsWith("---")) return <hr key={i} className="my-10 border-violet-500/20" />;
                             if (paragraph.startsWith("*") && paragraph.endsWith("*")) {
-                                return <p key={i} className="text-sm text-muted-foreground italic mb-4">{paragraph.replace(/\*/g, "")}</p>;
+                                return <p key={i} className="text-sm italic opacity-70 mb-4">{paragraph.replace(/\*/g, "")}</p>;
                             }
-                            return <p key={i} className="text-muted-foreground leading-relaxed mb-6">{paragraph}</p>;
+                            return <p key={i}>{paragraph}</p>;
                         })}
                     </div>
                 </article>

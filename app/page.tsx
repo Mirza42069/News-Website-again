@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { VoteButtons } from "@/components/vote-buttons";
 import { ArrowRightIcon, SparklesIcon } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
+import { sanitizeImageUrl } from "@/lib/image-utils";
 
 // Generate vote count - some articles get negative votes
 function getVoteCount(articleId: string, index?: number): { votes: number; preVoted?: "down" } {
@@ -75,12 +77,20 @@ export default function HomePage() {
 
                     <article className="group flex-1">
                         <Link href={`/article/${featured.slug}`} className="block space-y-4">
+                            {/* Featured Image */}
+                            <div className="relative aspect-[16/9] md:aspect-[21/9] w-full overflow-hidden rounded-xl">
+                                <Image
+                                    src={sanitizeImageUrl(featured.imageUrl)}
+                                    alt={featured.title}
+                                    fill
+                                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                                    priority
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                            </div>
                             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold leading-tight group-hover:text-violet-500 transition-colors text-balance">
                                 {featured.title}
                             </h1>
-                            <p className="text-lg text-muted-foreground max-w-3xl leading-relaxed">
-                                {featured.excerpt}
-                            </p>
                             <div className="flex items-center gap-4 pt-2">
                                 <div className="sm:hidden">
                                     <VoteButtons initialVotes={featuredVoteData.votes} orientation="horizontal" size="sm" preVoted={featuredVoteData.preVoted} />
@@ -118,6 +128,15 @@ export default function HomePage() {
                                     <VoteButtons initialVotes={voteData.votes} size="sm" preVoted={voteData.preVoted} />
                                     <article className="group flex-1 space-y-3">
                                         <Link href={`/article/${article.slug}`} className="block">
+                                            {/* Article Image */}
+                                            <div className="relative aspect-[16/9] w-full overflow-hidden rounded-lg mb-3">
+                                                <Image
+                                                    src={sanitizeImageUrl(article.imageUrl)}
+                                                    alt={article.title}
+                                                    fill
+                                                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                                                />
+                                            </div>
                                             <div className="flex items-center gap-3 text-xs text-muted-foreground mb-2">
                                                 <Badge variant="outline" className="font-normal text-xs border-violet-500/30">{article.category}</Badge>
                                                 <span>{new Date(article.publishedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
@@ -125,7 +144,6 @@ export default function HomePage() {
                                             <h3 className="font-semibold text-lg leading-snug group-hover:text-violet-500 transition-colors line-clamp-2">
                                                 {article.title}
                                             </h3>
-                                            <p className="text-sm text-muted-foreground line-clamp-2 mt-2">{article.excerpt}</p>
                                         </Link>
                                     </article>
                                 </div>

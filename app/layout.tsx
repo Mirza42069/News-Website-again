@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono, Merriweather } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import { ClerkProvider } from "@clerk/nextjs";
 import { TRPCProvider } from "@/lib/trpc";
@@ -11,6 +11,13 @@ import { SiteHeader } from "@/components/header";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
+  display: "swap",
+});
+
+const merriweather = Merriweather({
+  subsets: ["latin"],
+  weight: ["300", "400", "700", "900"],
+  variable: "--font-serif",
   display: "swap",
 });
 
@@ -37,7 +44,7 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
         <body
-          className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}
+          className={`${inter.variable} ${merriweather.variable} ${jetbrainsMono.variable} font-sans antialiased`}
         >
           <ThemeProvider
             attribute="class"
