@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronUpIcon, ChevronDownIcon } from "lucide-react";
+import { SlidingNumber } from "@/components/animate-ui/primitives/texts/sliding-number";
 
 interface VoteButtonsProps {
     initialVotes?: number;
@@ -48,6 +49,10 @@ export const VoteButtons = React.memo(function VoteButtons({
     const iconSize = size === "sm" ? "h-3.5 w-3.5" : "h-4 w-4";
     const buttonSize = size === "sm" ? "icon-xs" : "icon-sm";
 
+    const voteColor = votes > 0 && userVote === "up" ? "text-violet-500" :
+        votes < 0 || userVote === "down" ? "text-red-500" :
+            "text-muted-foreground";
+
     if (orientation === "horizontal") {
         return (
             <div className="flex items-center gap-1">
@@ -59,11 +64,8 @@ export const VoteButtons = React.memo(function VoteButtons({
                 >
                     <ChevronUpIcon className={iconSize} />
                 </Button>
-                <span className={`text-sm font-medium min-w-[3ch] text-center ${votes > 0 && userVote === "up" ? "text-violet-500" :
-                    votes < 0 || userVote === "down" ? "text-red-500" :
-                        "text-muted-foreground"
-                    }`}>
-                    {votes}
+                <span className={`text-sm font-medium min-w-[3ch] text-center ${voteColor}`}>
+                    <SlidingNumber number={votes} />
                 </span>
                 <Button
                     variant="ghost"
@@ -87,11 +89,8 @@ export const VoteButtons = React.memo(function VoteButtons({
             >
                 <ChevronUpIcon className={iconSize} />
             </Button>
-            <span className={`text-sm font-medium ${votes > 0 && userVote === "up" ? "text-violet-500" :
-                votes < 0 || userVote === "down" ? "text-red-500" :
-                    "text-muted-foreground"
-                }`}>
-                {votes}
+            <span className={`text-sm font-medium ${voteColor}`}>
+                <SlidingNumber number={votes} />
             </span>
             <Button
                 variant="ghost"

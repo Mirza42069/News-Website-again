@@ -19,4 +19,16 @@ export default defineSchema({
         .index("by_category", ["category"])
         .index("by_featured", ["featured"])
         .index("by_published", ["publishedAt"]),
+
+    comments: defineTable({
+        articleSlug: v.string(),
+        authorName: v.string(),
+        authorEmail: v.optional(v.string()),
+        content: v.string(),
+        createdAt: v.number(),
+        parentId: v.optional(v.id("comments")),
+    })
+        .index("by_article", ["articleSlug"])
+        .index("by_date", ["createdAt"])
+        .index("by_parent", ["parentId"]),
 });

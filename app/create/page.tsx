@@ -3,6 +3,9 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { useUser } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,14 +17,39 @@ import {
     XIcon,
     Loader2Icon,
     CheckIcon,
-    SparklesIcon
+    SparklesIcon,
 } from "lucide-react";
 import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
+import { toast } from "sonner";
+
+const CATEGORIES = ["Technology", "Business", "Science", "World", "Sports", "Health", "Entertainment"];
+const MAX_FILE_SIZE = 1 * 1024 * 1024; // 1MB limit
+
+function generateSlug(title: string): string {
+    return title
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, "")
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-")
+        .trim();
+}
+
+function formatFileSize(bytes: number): string {
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
+    return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+}
 
 export default function CreateNewsPage() {
     const router = useRouter();
+    const { user } = useUser();
+    const createArticle = useMutation(api.news.create);
+    
     const [title, setTitle] = React.useState("");
-    const [description, setDescription] = React.useState("");
+    const [excerpt, setExcerpt] = React.useState("");
+    const [content, setContent] = React.useState("");
+    const [category, setCategory] = React.useState("Technology");
+    const [imageData, setImageData] = React.useState<string | null>(null);
     const [imagePreview, setImagePreview] = React.useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
     const [isSuccess, setIsSuccess] = React.useState(false);
@@ -29,40 +57,73 @@ export default function CreateNewsPage() {
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setImagePreview(reader.result as string);
-            };
-            reader.readAsDataURL(file);
+        if (!file) return;
+
+        // Check file size
+        if (file.size > MAX_FILE_SIZE) {
+            toast.error(`Image too large! Maximum size is 1MB. Your file is ${formatFileSize(file.size)}`);
+            if (fileInputRef.current) fileInputRef.current.value = "";
+            return;
         }
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const dataUrl = reader.result as string;
+            setImagePreview(dataUrl);
+            setImageData(dataUrl);
+        };
+        reader.readAsDataURL(file);
     };
 
     const removeImage = () => {
         setImagePreview(null);
+        setImageData(null);
         if (fileInputRef.current) {
             fileInputRef.current.value = "";
         }
     };
 
     const handleSubmit = async () => {
-        if (!title.trim()) return;
+        if (!title.trim() || !excerpt.trim()) {
+            toast.error("Please fill in the title and excerpt");
+            return;
+        }
 
         setIsSubmitting(true);
 
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        try {
+            const slug = generateSlug(title) + "-" + Date.now();
+            const authorName = user?.fullName || user?.username || "Anonymous";
+            const authorImage = user?.imageUrl;
 
-        setIsSubmitting(false);
-        setIsSuccess(true);
+            await createArticle({
+                title: title.trim(),
+                slug,
+                excerpt: excerpt.trim(),
+                content: content.trim() || excerpt.trim(),
+                category,
+                imageUrl: imageData || "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800",
+                author: authorName,
+                authorImage: authorImage || undefined,
+                featured: false,
+                readTime: Math.ceil(content.split(/\s+/).length / 200) || 1,
+            });
 
-        // Redirect after showing success
-        setTimeout(() => {
-            router.push("/");
-        }, 1500);
+            setIsSuccess(true);
+            toast.success("Article published successfully!");
+
+            // Redirect after showing success
+            setTimeout(() => {
+                router.push("/search");
+            }, 1500);
+        } catch (error) {
+            console.error("Failed to create article:", error);
+            toast.error("Failed to publish article. Please try again.");
+            setIsSubmitting(false);
+        }
     };
 
-    const isValid = title.trim().length > 0;
+    const isValid = title.trim().length > 0 && excerpt.trim().length > 0;
 
     return (
         <div className="animate-fade-in max-w-2xl mx-auto">
@@ -121,7 +182,7 @@ export default function CreateNewsPage() {
                                 <div className="space-y-2">
                                     <h2 className="text-xl font-semibold">Article Published!</h2>
                                     <p className="text-muted-foreground">
-                                        Redirecting to homepage...
+                                        Redirecting to all news...
                                     </p>
                                 </div>
                             </div>
@@ -129,7 +190,7 @@ export default function CreateNewsPage() {
                             <>
                                 {/* Image Upload */}
                                 <div className="space-y-2">
-                                    <Label>Cover Image</Label>
+                                    <Label>Cover Image <span className="text-muted-foreground text-xs">(max 1MB)</span></Label>
                                     {imagePreview ? (
                                         <div className="relative aspect-video rounded-lg overflow-hidden bg-muted">
                                             <img
@@ -154,7 +215,7 @@ export default function CreateNewsPage() {
                                         >
                                             <ImageIcon className="h-10 w-10" />
                                             <span className="text-sm font-medium">Click to upload cover image</span>
-                                            <span className="text-xs text-muted-foreground">PNG, JPG up to 10MB</span>
+                                            <span className="text-xs text-muted-foreground">PNG, JPG up to 1MB</span>
                                         </button>
                                     )}
                                     <input
@@ -178,14 +239,42 @@ export default function CreateNewsPage() {
                                     />
                                 </div>
 
-                                {/* Description */}
+                                {/* Category */}
                                 <div className="space-y-2">
-                                    <Label htmlFor="description">Content</Label>
+                                    <Label htmlFor="category">Category</Label>
+                                    <select
+                                        id="category"
+                                        value={category}
+                                        onChange={(e) => setCategory(e.target.value)}
+                                        className="w-full h-10 px-3 rounded-md border border-input text-black bg-white text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                                    >
+                                        {CATEGORIES.map((cat) => (
+                                            <option key={cat} value={cat}>{cat}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Excerpt */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="excerpt">Excerpt / Summary *</Label>
                                     <Textarea
-                                        id="description"
+                                        id="excerpt"
+                                        placeholder="A brief summary of your article..."
+                                        value={excerpt}
+                                        onChange={(e) => setExcerpt(e.target.value)}
+                                        rows={3}
+                                        className="resize-none focus-visible:ring-violet-500"
+                                    />
+                                </div>
+
+                                {/* Content */}
+                                <div className="space-y-2">
+                                    <Label htmlFor="content">Full Content</Label>
+                                    <Textarea
+                                        id="content"
                                         placeholder="Write your article content here..."
-                                        value={description}
-                                        onChange={(e) => setDescription(e.target.value)}
+                                        value={content}
+                                        onChange={(e) => setContent(e.target.value)}
                                         rows={10}
                                         className="resize-none focus-visible:ring-violet-500"
                                     />

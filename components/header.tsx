@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { MobileNav } from "@/components/mobile-nav";
-import { SearchIcon, PlusIcon, HeartIcon, LayoutDashboardIcon } from "lucide-react";
+import { SearchIcon, PlusIcon, HeartIcon, LayoutDashboardIcon, NewspaperIcon } from "lucide-react";
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
 
 const CATEGORIES = [
@@ -74,6 +74,17 @@ export function SiteHeader() {
 
                     {/* Actions */}
                     <div className="flex items-center gap-2">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            asChild
+                            className="hidden sm:flex text-muted-foreground hover:text-violet-500 gap-1.5"
+                        >
+                            <Link href="/search">
+                                <NewspaperIcon className="h-4 w-4" />
+                                <span>All News</span>
+                            </Link>
+                        </Button>
                         <Button
                             variant="ghost"
                             size="icon-sm"

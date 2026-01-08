@@ -2,12 +2,14 @@
 
 import * as React from "react";
 import dynamic from "next/dynamic";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { VoteButtons } from "@/components/vote-buttons";
 import { AISummarizeButton } from "@/components/ai-summarize";
+import { Comments } from "@/components/comments";
+import { ReadingProgress } from "@/components/reading-progress";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -91,6 +93,7 @@ export default function ArticlePage() {
 
     return (
         <div className="animate-fade-in">
+            <ReadingProgress />
             <Button variant="ghost" size="sm" asChild className="mb-8 text-muted-foreground hover:text-violet-500">
                 <Link href="/"><ArrowLeftIcon className="mr-2 h-4 w-4" />Back</Link>
             </Button>
@@ -140,7 +143,12 @@ export default function ArticlePage() {
                                 </AvatarFallback>
                             </Avatar>
                             <div>
-                                <p className="font-medium text-sm">{article.author}</p>
+                                <Link 
+                                    href={`/author/${article.author?.toLowerCase().replace(/\s+/g, "-") || "unknown"}`}
+                                    className="font-medium text-sm hover:text-violet-500 transition-colors"
+                                >
+                                    {article.author}
+                                </Link>
                                 <p className="text-xs text-muted-foreground">Author</p>
                             </div>
                         </div>
@@ -170,7 +178,7 @@ export default function ArticlePage() {
                         </div>
                     )}
 
-                    <div className="prose-serif max-w-none">
+                    <div className="prose-clean max-w-none">
                         {displayContent.split("\n\n").map((paragraph, i) => {
                             if (paragraph.startsWith("## ")) {
                                 return <h2 key={i}>{paragraph.replace("## ", "")}</h2>;
@@ -193,6 +201,9 @@ export default function ArticlePage() {
                             return <p key={i}>{paragraph}</p>;
                         })}
                     </div>
+
+                    {/* Comments Section */}
+                    <Comments articleSlug={slug} />
                 </article>
             </div>
         </div>

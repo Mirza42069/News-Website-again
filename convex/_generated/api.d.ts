@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as comments from "../comments.js";
 import type * as news from "../news.js";
 
 import type {
@@ -17,6 +18,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  comments: typeof comments;
   news: typeof news;
 }>;
 

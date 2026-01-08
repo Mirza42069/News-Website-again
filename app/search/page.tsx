@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeftIcon, SearchIcon, SparklesIcon, Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
+import { sanitizeImageUrl } from "@/lib/image-utils";
 
 function formatDate(timestamp: number): string {
     return new Date(timestamp).toLocaleDateString("en-US", {
@@ -90,14 +91,17 @@ function SearchResults() {
     };
 
     const results = React.useMemo(() => {
-        if (!allArticles || !query) return [];
+        if (!allArticles) return [];
+
+        // Show all articles if no query
+        if (!query) return allArticles;
 
         if (isAISearch) {
             // Semantic search: score and rank all articles
             const scored = allArticles
                 .map((article) => ({
                     ...article,
-                    score: getSemanticScore(query, article as any),
+                    score: getSemanticScore(query, article as unknown as { title: string; excerpt: string; category: string; content: string }),
                 }))
                 .filter((a) => a.score > 0)
                 .sort((a, b) => b.score - a.score);
@@ -125,38 +129,46 @@ function SearchResults() {
             <div className="mb-8 space-y-4">
                 <div className="flex items-center justify-between">
                     <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                            <SearchIcon className="h-4 w-4" />
-                            <span className="text-sm">Search results for</span>
-                        </div>
-                        <h1 className="text-2xl font-bold">"{query}"</h1>
+                        {query ? (
+                            <>
+                                <div className="flex items-center gap-2 text-muted-foreground">
+                                    <SearchIcon className="h-4 w-4" />
+                                    <span className="text-sm">Search results for</span>
+                                </div>
+                                <h1 className="text-2xl font-bold">"{query}"</h1>
+                            </>
+                        ) : (
+                            <h1 className="text-2xl font-bold">All News</h1>
+                        )}
                         <p className="text-muted-foreground">
-                            {results.length} article{results.length !== 1 ? "s" : ""} found
-                            {isAISearch && <span className="text-violet-500 ml-1">• AI ranked</span>}
+                            {results.length} article{results.length !== 1 ? "s" : ""}
+                            {query && isAISearch && <span className="text-violet-500 ml-1">• AI ranked</span>}
                         </p>
                     </div>
 
-                    {/* AI Search Toggle */}
-                    <Button
-                        variant={isAISearch ? "default" : "outline"}
-                        size="sm"
-                        onClick={handleAIToggle}
-                        disabled={isProcessing}
-                        className={isAISearch
-                            ? "gap-2 bg-violet-500 hover:bg-violet-600 text-white"
-                            : "gap-2 border-violet-500/30 text-violet-500 hover:bg-violet-500/10"
-                        }
-                    >
-                        {isProcessing ? (
-                            <Loader2Icon className="h-4 w-4 animate-spin" />
-                        ) : (
-                            <SparklesIcon className="h-4 w-4" />
-                        )}
-                        {isAISearch ? "AI Search On" : "Try AI Search"}
-                    </Button>
+                    {/* AI Search Toggle - only show when searching */}
+                    {query && (
+                        <Button
+                            variant={isAISearch ? "default" : "outline"}
+                            size="sm"
+                            onClick={handleAIToggle}
+                            disabled={isProcessing}
+                            className={isAISearch
+                                ? "gap-2 bg-violet-500 hover:bg-violet-600 text-white"
+                                : "gap-2 border-violet-500/30 text-violet-500 hover:bg-violet-500/10"
+                            }
+                        >
+                            {isProcessing ? (
+                                <Loader2Icon className="h-4 w-4 animate-spin" />
+                            ) : (
+                                <SparklesIcon className="h-4 w-4" />
+                            )}
+                            {isAISearch ? "AI Search On" : "Try AI Search"}
+                        </Button>
+                    )}
                 </div>
 
-                {isAISearch && (
+                {query && isAISearch && (
                     <div className="flex items-center gap-2 p-3 rounded-lg bg-violet-500/10 border border-violet-500/20 text-sm">
                         <SparklesIcon className="h-4 w-4 text-violet-500" />
                         <span className="text-violet-500">
@@ -196,7 +208,7 @@ function SearchResults() {
                                 {article.imageUrl && (
                                     <div className="relative w-24 h-16 rounded overflow-hidden flex-shrink-0">
                                         <Image
-                                            src={article.imageUrl}
+                                            src={sanitizeImageUrl(article.imageUrl)}
                                             alt=""
                                             fill
                                             sizes="96px"

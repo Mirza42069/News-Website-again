@@ -20,6 +20,20 @@ function formatDate(timestamp: number): string {
     });
 }
 
+// Get category-specific color
+function getCategoryColor(category: string): { text: string; border: string; bg: string } {
+    const colors: Record<string, { text: string; border: string; bg: string }> = {
+        Technology: { text: "text-violet-500", border: "border-violet-500/30", bg: "bg-violet-500/10" },
+        Business: { text: "text-accent-amber", border: "border-amber-500/30", bg: "bg-amber-500/10" },
+        Science: { text: "text-accent-cyan", border: "border-cyan-500/30", bg: "bg-cyan-500/10" },
+        World: { text: "text-blue-400", border: "border-blue-400/30", bg: "bg-blue-400/10" },
+        Sports: { text: "text-green-500", border: "border-green-500/30", bg: "bg-green-500/10" },
+        Health: { text: "text-accent-pink", border: "border-pink-500/30", bg: "bg-pink-500/10" },
+        Entertainment: { text: "text-rose-400", border: "border-rose-400/30", bg: "bg-rose-400/10" },
+    };
+    return colors[category] || { text: "text-violet-500", border: "border-violet-500/30", bg: "bg-violet-500/10" };
+}
+
 // Generate vote count - some articles get negative votes
 function getVoteCount(articleId: string, index?: number): { votes: number; preVoted?: "down" } {
     const charCode = articleId.charCodeAt(0);
@@ -37,6 +51,7 @@ function getVoteCount(articleId: string, index?: number): { votes: number; preVo
 
 export function NewsCard({ article, variant = "default", index }: NewsCardProps) {
     const { votes, preVoted } = getVoteCount(article._id, index);
+    const categoryColor = getCategoryColor(article.category);
 
     // Minimal variant - clean text-only design with votes
     if (variant === "minimal") {
@@ -46,8 +61,8 @@ export function NewsCard({ article, variant = "default", index }: NewsCardProps)
                 <Link href={`/article/${article.slug}`} className="group block flex-1">
                     <article className="space-y-2">
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <span className="text-violet-500">{article.category}</span>
-                            <span className="w-1 h-1 rounded-full bg-violet-500/30" />
+                            <span className={categoryColor.text}>{article.category}</span>
+                            <span className={`w-1 h-1 rounded-full ${categoryColor.bg}`} />
                             <span>{formatDate(article.publishedAt)}</span>
                         </div>
                         <h3 className="font-semibold leading-snug group-hover:text-violet-500 transition-colors line-clamp-2">
@@ -80,7 +95,7 @@ export function NewsCard({ article, variant = "default", index }: NewsCardProps)
                         )}
                         <div className="flex-1 space-y-2">
                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                <Badge variant="outline" className="font-normal text-xs border-violet-500/30">
+                                <Badge variant="outline" className={`font-normal text-xs ${categoryColor.border} ${categoryColor.text}`}>
                                     {article.category}
                                 </Badge>
                                 <span>{formatDate(article.publishedAt)}</span>
@@ -118,7 +133,7 @@ export function NewsCard({ article, variant = "default", index }: NewsCardProps)
                     {/* Content */}
                     <div className="space-y-2">
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <Badge variant="outline" className="font-normal text-xs border-violet-500/30 text-violet-500">
+                            <Badge variant="outline" className={`font-normal text-xs ${categoryColor.border} ${categoryColor.text}`}>
                                 {article.category}
                             </Badge>
                             <span>{formatDate(article.publishedAt)}</span>
