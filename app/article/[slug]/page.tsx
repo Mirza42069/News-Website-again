@@ -24,6 +24,20 @@ import {
 import { toast } from "sonner";
 import { sanitizeImageUrl } from "@/lib/image-utils";
 
+// Get category-specific color (same as news-card)
+function getCategoryColor(category: string): { text: string; border: string; bg: string } {
+    const colors: Record<string, { text: string; border: string; bg: string }> = {
+        Technology: { text: "text-violet-500", border: "border-violet-500/30", bg: "bg-violet-500/10" },
+        Business: { text: "text-accent-amber", border: "border-amber-500/30", bg: "bg-amber-500/10" },
+        Science: { text: "text-accent-cyan", border: "border-cyan-500/30", bg: "bg-cyan-500/10" },
+        World: { text: "text-blue-400", border: "border-blue-400/30", bg: "bg-blue-400/10" },
+        Sports: { text: "text-green-500", border: "border-green-500/30", bg: "bg-green-500/10" },
+        Health: { text: "text-accent-pink", border: "border-pink-500/30", bg: "bg-pink-500/10" },
+        Entertainment: { text: "text-rose-400", border: "border-rose-400/30", bg: "bg-rose-400/10" },
+    };
+    return colors[category] || { text: "text-violet-500", border: "border-violet-500/30", bg: "bg-violet-500/10" };
+}
+
 // Dynamic imports for heavy components - reduces initial bundle
 const ShareModal = dynamic(() => import("@/components/share-modal").then(mod => ({ default: mod.ShareModal })), {
     loading: () => <div className="w-8 h-8" />,
@@ -90,6 +104,7 @@ export default function ArticlePage() {
     const displayContent = aiSummary || article.content;
     const sanitizedHeroImage = sanitizeImageUrl(article.imageUrl);
     const galleryImages = article.imageUrl ? [sanitizedHeroImage, ...mockGalleryImages.map(sanitizeImageUrl)] : mockGalleryImages.map(sanitizeImageUrl);
+    const categoryColor = getCategoryColor(article.category);
 
     return (
         <div className="animate-fade-in">
@@ -106,17 +121,17 @@ export default function ArticlePage() {
                 <article className="flex-1 max-w-3xl space-y-8">
                     <header className="space-y-6">
                         <div className="flex flex-wrap items-center gap-3 text-sm">
-                            <Badge variant="secondary" asChild className="font-normal bg-violet-500/10 text-violet-500 hover:bg-violet-500/20">
+                            <Badge variant="secondary" asChild className={`font-normal ${categoryColor.bg} ${categoryColor.text} hover:opacity-80`}>
                                 <Link href={`/category/${article.category.toLowerCase()}`}>{article.category}</Link>
                             </Badge>
-                            <span className="w-1 h-1 rounded-full bg-violet-500/30" />
+                            <span className={`w-1 h-1 rounded-full ${categoryColor.bg}`} />
                             <div className="flex items-center gap-1.5 text-muted-foreground">
                                 <CalendarIcon className="h-3.5 w-3.5" />
                                 <span>{formatDate(article.publishedAt)}</span>
                             </div>
                             {article.readTime && (
                                 <>
-                                    <span className="w-1 h-1 rounded-full bg-violet-500/30" />
+                                    <span className={`w-1 h-1 rounded-full ${categoryColor.bg}`} />
                                     <div className="flex items-center gap-1.5 text-muted-foreground">
                                         <ClockIcon className="h-3.5 w-3.5" />
                                         <span>{article.readTime} min read</span>
@@ -174,7 +189,7 @@ export default function ArticlePage() {
                         <div className="flex items-center gap-2 p-3 rounded-lg bg-violet-500/10 border border-violet-500/20">
                             <SparklesIcon className="h-4 w-4 text-violet-500" />
                             <span className="text-sm text-violet-500 font-medium">AI-Generated Summary</span>
-                            <span className="text-xs text-muted-foreground ml-auto">Mockup Demo</span>
+                            <span className="text-xs text-muted-foreground ml-auto">Powered by Gemini</span>
                         </div>
                     )}
 

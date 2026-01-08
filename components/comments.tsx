@@ -53,7 +53,7 @@ export function Comments({ articleSlug }: CommentsProps) {
                 articleSlug,
                 authorName: name.trim(),
                 content: content.trim(),
-                parentId: replyTo?.id as any,
+                ...(replyTo?.id && { parentId: replyTo.id as any }),
             });
             setContent("");
             setReplyTo(null);
@@ -125,7 +125,7 @@ export function Comments({ articleSlug }: CommentsProps) {
             </div>
 
             {/* Add Comment Form */}
-            <form onSubmit={handleSubmit} className="mb-8 space-y-4 bg-muted/30 p-4 rounded-xl border border-border/50">
+            <form onSubmit={handleSubmit} className="mb-8 space-y-4 bg-muted/30 p-4 rounded-xl">
                 {replyTo && (
                     <div className="flex items-center justify-between text-sm text-violet-500 mb-2 bg-violet-500/10 px-3 py-1.5 rounded-md">
                         <span>Replying to {replyTo.authorName}</span>

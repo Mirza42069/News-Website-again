@@ -246,10 +246,10 @@ export default function CreateNewsPage() {
                                         id="category"
                                         value={category}
                                         onChange={(e) => setCategory(e.target.value)}
-                                        className="w-full h-10 px-3 rounded-md border border-input text-black bg-white text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                                        className="w-full h-10 px-3 rounded-md border border-input bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500"
                                     >
                                         {CATEGORIES.map((cat) => (
-                                            <option key={cat} value={cat}>{cat}</option>
+                                            <option key={cat} value={cat} className="bg-white text-gray-900">{cat}</option>
                                         ))}
                                     </select>
                                 </div>

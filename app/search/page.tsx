@@ -21,93 +21,81 @@ function formatDate(timestamp: number): string {
     });
 }
 
-// Mockup semantic similarity - simulates AI matching
-function getSemanticScore(query: string, article: { title: string; excerpt: string; category: string; content: string }): number {
-    const queryWords = query.toLowerCase().split(/\s+/);
-    const articleText = `${article.title} ${article.excerpt} ${article.category} ${article.content || ""}`.toLowerCase();
-
-    let score = 0;
-
-    // Word matching with weight
-    for (const word of queryWords) {
-        if (word.length < 2) continue;
-
-        // Exact match in title = high score
-        if (article.title.toLowerCase().includes(word)) score += 10;
-        // Match in excerpt
-        if (article.excerpt.toLowerCase().includes(word)) score += 5;
-        // Match in category
-        if (article.category.toLowerCase().includes(word)) score += 8;
-        // Match in content
-        if (articleText.includes(word)) score += 2;
-    }
-
-    // Bonus for query concepts (simulated semantic understanding)
-    const conceptMap: Record<string, string[]> = {
-        "tech": ["technology", "ai", "software", "digital", "innovation", "startup"],
-        "business": ["economy", "market", "company", "finance", "investment"],
-        "science": ["research", "discovery", "study", "experiment", "data"],
-        "world": ["global", "international", "politics", "nation", "government"],
-        "ai": ["artificial intelligence", "machine learning", "neural", "automation"],
-        "climate": ["environment", "green", "sustainability", "carbon", "energy"],
-    };
-
-    for (const [concept, synonyms] of Object.entries(conceptMap)) {
-        if (queryWords.includes(concept)) {
-            for (const synonym of synonyms) {
-                if (articleText.includes(synonym)) score += 3;
-            }
-        }
-    }
-
-    return score;
-}
-
 function SearchResults() {
     const searchParams = useSearchParams();
     const query = searchParams.get("q") || "";
     const allArticles = useQuery(api.news.list);
     const [isAISearch, setIsAISearch] = React.useState(false);
     const [isProcessing, setIsProcessing] = React.useState(false);
+    const [aiResults, setAiResults] = React.useState<any[] | null>(null);
 
-    const handleAIToggle = () => {
-        if (!isAISearch) {
-            setIsProcessing(true);
-            toast.loading("Running semantic analysis...", { id: "ai-search" });
-
-            // Simulate AI processing delay
-            setTimeout(() => {
-                setIsAISearch(true);
-                setIsProcessing(false);
-                toast.success("AI Search enabled", {
-                    id: "ai-search",
-                    description: "Results ranked by semantic relevance",
-                });
-            }, 1500);
-        } else {
+    const handleAIToggle = async () => {
+        if (isAISearch) {
             setIsAISearch(false);
+            setAiResults(null);
             toast.info("Switched to keyword search");
+            return;
+        }
+
+        if (!allArticles || !query) return;
+
+        setIsProcessing(true);
+        toast.loading("Running AI semantic analysis...", { id: "ai-search" });
+
+        try {
+            const response = await fetch("/api/ai/search", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    query,
+                    articles: allArticles.map(a => ({
+                        _id: a._id,
+                        title: a.title,
+                        excerpt: a.excerpt,
+                        category: a.category,
+                        content: a.content?.substring(0, 500),
+                    })),
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || "AI search failed");
+            }
+
+            // Map the ranked articles back with full data
+            const rankedWithFullData = data.rankedArticles.map((ranked: any) => {
+                const fullArticle = allArticles.find(a => a._id === ranked._id);
+                return { ...fullArticle, score: ranked.score };
+            }).filter(Boolean);
+
+            setAiResults(rankedWithFullData);
+            setIsAISearch(true);
+            toast.success("AI Search enabled", {
+                id: "ai-search",
+                description: "Results ranked by semantic relevance",
+            });
+        } catch (error) {
+            console.error("AI Search error:", error);
+            toast.error(error instanceof Error ? error.message : "AI search failed", {
+                id: "ai-search",
+            });
+        } finally {
+            setIsProcessing(false);
         }
     };
 
     const results = React.useMemo(() => {
         if (!allArticles) return [];
 
+        // If AI search is active and we have results, use them
+        if (isAISearch && aiResults) {
+            return aiResults;
+        }
+
         // Show all articles if no query
         if (!query) return allArticles;
-
-        if (isAISearch) {
-            // Semantic search: score and rank all articles
-            const scored = allArticles
-                .map((article) => ({
-                    ...article,
-                    score: getSemanticScore(query, article as unknown as { title: string; excerpt: string; category: string; content: string }),
-                }))
-                .filter((a) => a.score > 0)
-                .sort((a, b) => b.score - a.score);
-
-            return scored;
-        }
 
         // Regular keyword search
         const lowerQuery = query.toLowerCase();
@@ -118,7 +106,7 @@ function SearchResults() {
                 article.category.toLowerCase().includes(lowerQuery) ||
                 article.author.toLowerCase().includes(lowerQuery)
         );
-    }, [allArticles, query, isAISearch]);
+    }, [allArticles, query, isAISearch, aiResults]);
 
     if (allArticles === undefined) {
         return <div className="text-center py-20 text-muted-foreground">Loading...</div>;
@@ -172,9 +160,8 @@ function SearchResults() {
                     <div className="flex items-center gap-2 p-3 rounded-lg bg-violet-500/10 border border-violet-500/20 text-sm">
                         <SparklesIcon className="h-4 w-4 text-violet-500" />
                         <span className="text-violet-500">
-                            Semantic search enabled — results ranked by meaning, not just keywords
+                            Powered by Gemini AI — results ranked by semantic meaning
                         </span>
-                        <span className="text-xs text-muted-foreground ml-auto">Mockup Demo</span>
                     </div>
                 )}
             </div>
@@ -182,7 +169,7 @@ function SearchResults() {
             {results.length === 0 ? (
                 <div className="text-center py-16 text-muted-foreground">
                     <p>No articles found matching your search.</p>
-                    {!isAISearch && (
+                    {!isAISearch && query && (
                         <Button
                             variant="link"
                             className="text-violet-500 mt-2"
