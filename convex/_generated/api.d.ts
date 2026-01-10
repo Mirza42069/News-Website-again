@@ -12,6 +12,7 @@ import type * as addArticles from "../addArticles.js";
 import type * as comments from "../comments.js";
 import type * as fixHeaders from "../fixHeaders.js";
 import type * as news from "../news.js";
+import type * as readHistory from "../readHistory.js";
 
 import type {
   ApiFromModules,
@@ -24,6 +25,7 @@ declare const fullApi: ApiFromModules<{
   comments: typeof comments;
   fixHeaders: typeof fixHeaders;
   news: typeof news;
+  readHistory: typeof readHistory;
 }>;
 
 /**

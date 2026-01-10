@@ -2,14 +2,14 @@
 
 import * as React from "react";
 import dynamic from "next/dynamic";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
+import { useUser } from "@clerk/nextjs";
 import { api } from "@/convex/_generated/api";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { VoteButtons } from "@/components/vote-buttons";
 import { AISummarizeButton } from "@/components/ai-summarize";
 import { Comments } from "@/components/comments";
-import { ReadingProgress } from "@/components/reading-progress";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -63,8 +63,21 @@ export default function ArticlePage() {
     const slug = params.slug as string;
     const [aiSummary, setAiSummary] = React.useState<string | null>(null);
     const [bookmarked, setBookmarked] = React.useState(false);
+    const { user, isSignedIn } = useUser();
+    const trackRead = useMutation(api.readHistory.trackRead);
 
     const article = useQuery(api.news.getBySlug, { slug });
+
+    // Track read when article loads
+    React.useEffect(() => {
+        if (isSignedIn && user && article) {
+            trackRead({
+                userId: user.id,
+                articleSlug: article.slug,
+                category: article.category,
+            }).catch(console.error);
+        }
+    }, [isSignedIn, user, article, trackRead]);
 
     // Loading
     if (article === undefined) {
@@ -153,7 +166,7 @@ export default function ArticlePage() {
                             </Avatar>
                             <div>
                                 <Link 
-                                    href={`/author/${article.author?.toLowerCase().replace(/\s+/g, "-") || "unknown"}`}
+                                    href={`/author/${encodeURIComponent(article.author || "unknown")}`}
                                     className="font-medium text-sm hover:text-violet-500 transition-colors"
                                 >
                                     {article.author}

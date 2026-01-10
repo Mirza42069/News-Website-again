@@ -9,6 +9,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { sanitizeImageUrl } from "@/lib/image-utils";
 import { HeroCarousel } from "@/components/hero-carousel";
+import { PersonalizedFeed } from "@/components/personalized-feed";
 
 function formatDate(timestamp: number): string {
     return new Date(timestamp).toLocaleDateString("en-US", {
@@ -74,6 +75,9 @@ export default function HomePage() {
         <div className="animate-fade-in space-y-10">
             {/* Hero Carousel Section */}
             <HeroCarousel articles={allArticles.slice(0, 4)} />
+
+            {/* Personalized Feed for logged-in users */}
+            <PersonalizedFeed />
 
             {/* Main Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr_1fr_280px] gap-8">

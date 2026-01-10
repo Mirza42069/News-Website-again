@@ -73,6 +73,42 @@ export const getCategories = query({
     },
 });
 
+// Get articles by author
+export const getByAuthor = query({
+    args: { author: v.string() },
+    handler: async (ctx, args) => {
+        return await ctx.db
+            .query("articles")
+            .withIndex("by_author", (q) => q.eq("author", args.author))
+            .order("desc")
+            .collect();
+    },
+});
+
+// Get all unique authors
+export const getAuthors = query({
+    args: {},
+    handler: async (ctx) => {
+        const articles = await ctx.db.query("articles").collect();
+        const authorsMap = new Map<string, { name: string; image?: string; count: number }>();
+        
+        for (const article of articles) {
+            const existing = authorsMap.get(article.author);
+            if (existing) {
+                existing.count++;
+            } else {
+                authorsMap.set(article.author, {
+                    name: article.author,
+                    image: article.authorImage,
+                    count: 1,
+                });
+            }
+        }
+        
+        return Array.from(authorsMap.values());
+    },
+});
+
 // Create a new article
 export const create = mutation({
     args: {

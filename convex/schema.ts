@@ -18,7 +18,8 @@ export default defineSchema({
         .index("by_slug", ["slug"])
         .index("by_category", ["category"])
         .index("by_featured", ["featured"])
-        .index("by_published", ["publishedAt"]),
+        .index("by_published", ["publishedAt"])
+        .index("by_author", ["author"]),
 
     comments: defineTable({
         articleSlug: v.string(),
@@ -31,4 +32,15 @@ export default defineSchema({
         .index("by_article", ["articleSlug"])
         .index("by_date", ["createdAt"])
         .index("by_parent", ["parentId"]),
+
+    // Track user reading history for personalized recommendations
+    readHistory: defineTable({
+        userId: v.string(),
+        articleSlug: v.string(),
+        category: v.string(),
+        readAt: v.number(),
+    })
+        .index("by_user", ["userId"])
+        .index("by_user_article", ["userId", "articleSlug"]),
 });
+
