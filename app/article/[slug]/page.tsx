@@ -9,6 +9,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { VoteButtons } from "@/components/vote-buttons";
 import { AISummarizeButton } from "@/components/ai-summarize";
+import { TranslateButton } from "@/components/translate-button";
 import { Comments } from "@/components/comments";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -62,6 +63,7 @@ export default function ArticlePage() {
     const params = useParams();
     const slug = params.slug as string;
     const [aiSummary, setAiSummary] = React.useState<string | null>(null);
+    const [translatedContent, setTranslatedContent] = React.useState<string | null>(null);
     const [bookmarked, setBookmarked] = React.useState(false);
     const { user, isSignedIn } = useUser();
     const trackRead = useMutation(api.readHistory.trackRead);
@@ -109,7 +111,7 @@ export default function ArticlePage() {
     }
 
     const baseVotes = article._id.charCodeAt(0) % 100 + 50;
-    const displayContent = aiSummary || article.content;
+    const displayContent = translatedContent || aiSummary || article.content;
     const sanitizedHeroImage = sanitizeImageUrl(article.imageUrl);
     const galleryImages = article.imageUrl ? [sanitizedHeroImage] : [];
     const categoryColor = getCategoryColor(article.category);
@@ -150,9 +152,18 @@ export default function ArticlePage() {
                         <h1 className="text-4xl md:text-5xl lg:text-6xl font-black leading-[1.1] tracking-tight">{article.title}</h1>
                         <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed font-light">{article.excerpt}</p>
 
-                        <div className="flex items-center gap-3">
+                        <div className="flex flex-wrap items-center gap-3">
                             <AISummarizeButton content={article.content} title={article.title} onSummaryChange={setAiSummary} isActive={aiSummary !== null} />
-                            <span className="text-xs text-muted-foreground">{aiSummary ? "Viewing AI summary" : "Get a quick AI-powered summary"}</span>
+                            <TranslateButton 
+                                content={aiSummary || article.content} 
+                                onTranslate={setTranslatedContent} 
+                                isTranslated={translatedContent !== null} 
+                            />
+                            {(aiSummary || translatedContent) && (
+                                <span className="text-xs text-muted-foreground">
+                                    {translatedContent ? "Viewing translation" : aiSummary ? "Viewing AI summary" : ""}
+                                </span>
+                            )}
                         </div>
                     </header>
 

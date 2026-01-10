@@ -54,8 +54,8 @@ export function AISummarizeButton({ content, title, onSummaryChange, isActive }:
             onClick={handleSummarize}
             disabled={isLoading}
             className={isActive
-                ? "gap-1.5 bg-violet-500 hover:bg-violet-600 text-white"
-                : "gap-1.5 border-violet-500/30 text-violet-500 hover:bg-violet-500/10 hover:text-violet-500"
+                ? "gap-1.5 bg-amber-500 hover:bg-amber-600 text-white"
+                : "gap-1.5 border-amber-500/50 text-amber-500 bg-amber-500/10"
             }
         >
             {isLoading ? (
